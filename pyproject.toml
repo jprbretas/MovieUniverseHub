@@ -1,0 +1,31 @@
+# Configuração do projeto Python.
+# Equivalente C#: o .csproj (nome, versão, dependências NuGet, configurações de ferramentas).
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "movieuniverse"
+version = "0.1.0"
+description = "MovieUniverse Hub: pesquisar filmes (API TMDB), criar playlists e dar notas."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.141",           # framework web / API REST (≈ ASP.NET Core Minimal APIs)
+    "uvicorn[standard]>=0.53",  # servidor HTTP que corre a app (≈ Kestrel)
+    "pydantic-settings>=2.15",  # lê o .env para um objeto tipado (≈ IOptions<T>)
+]
+
+[project.optional-dependencies]
+# Só para desenvolvimento/testes: pip install -e ".[dev]"
+dev = [
+    "pytest>=9.0",   # framework de testes (≈ xUnit)
+    "httpx2>=2.13",  # necessário para o TestClient do FastAPI (sucessor do httpx)
+]
+
+[tool.setuptools.package-data]
+movieuniverse = ["static/**/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

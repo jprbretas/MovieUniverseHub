@@ -1,0 +1,47 @@
+/* Cores inspiradas no logótipo do enunciado: azul-noite, roxo e ciano. */
+:root {
+    --fundo: #0f1020;
+    --superficie: #1b1d36;
+    --texto: #e8e8f5;
+    --texto-suave: #a3a5c2;
+    --roxo: #8b5cf6;
+    --ciano: #22d3ee;
+    --erro: #f87171;
+    --ok: #34d399;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--fundo);
+    color: var(--texto);
+}
+
+.topo {
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid var(--superficie);
+}
+
+.topo h1 { margin: 0; font-size: 1.5rem; }
+.destaque { color: var(--ciano); }
+
+.conteudo {
+    max-width: 960px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.cartao {
+    background: var(--superficie);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+}
+
+.cartao h2 { margin-top: 0; font-size: 1.1rem; color: var(--texto-suave); }
+
+a { color: var(--ciano); }
+
+.ok { color: var(--ok); }
+.erro { color: var(--erro); }

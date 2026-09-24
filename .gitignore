@@ -1,0 +1,23 @@
+# Segredos: o .env NUNCA vai para o repositório (só o .env.example)
+.env
+
+# Ambiente virtual Python (≈ pastas bin/ e obj/ do .NET: gera-se localmente)
+.venv/
+venv/
+
+# Cache do Python e das ferramentas
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Base de dados local (é criada pela aplicação)
+dados/*.db
+dados/*.db-journal
+
+# IDEs (do VS Code só partilhamos o launch.json, que dá o F5 / botão Run)
+.idea/
+.vscode/*
+!.vscode/launch.json

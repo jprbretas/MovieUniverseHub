@@ -1,0 +1,23 @@
+# Registo de utilização de IA
+
+Situações em que a IA sugeriu algo errado, ou em que decidi não usar a sugestão,
+e o que fiz em vez disso.
+
+<!--
+Modelo para cada entrada:
+
+## N. Título curto
+- **Contexto:** o que estava a fazer
+- **Sugestão da IA:** o que foi sugerido
+- **Problema / porque não usei:** ...
+- **O que fiz em vez disso:** ...
+-->
+
+## 1. Biblioteca desatualizada no TestClient (httpx → httpx2)
+- **Contexto:** passo 0, criação do esqueleto do projeto e do primeiro teste automático.
+- **Sugestão da IA:** usar o `httpx` como dependência de desenvolvimento para o `TestClient` do FastAPI.
+- **Problema:** ao correr o `pytest`, o Starlette 1.7 emitiu um `StarletteDeprecationWarning`
+  a dizer que o uso do `httpx` com o `TestClient` está obsoleto e que se deve instalar o `httpx2`.
+  A sugestão vinha de conhecimento anterior a essa mudança.
+- **O que fiz em vez disso:** confirmei no PyPI que o `httpx2` é do mesmo autor (Tom Christie),
+  troquei a dependência no `pyproject.toml` e voltei a correr os testes, que passaram sem aviso.
