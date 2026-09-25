@@ -3,6 +3,7 @@
 Equivalente C#: testes xUnit com WebApplicationFactory. O TestClient chama a app
 em memória, sem abrir nenhuma porta.
 """
+import pytest
 from fastapi.testclient import TestClient
 
 from movieuniverse.api import app
@@ -30,3 +31,8 @@ def test_pagina_inicial_e_servida():
 
     assert resposta.status_code == 200
     assert "MovieUniverse" in resposta.text
+
+
+@pytest.mark.parametrize("caminho", ["/js/app.js", "/js/api.js", "/css/estilo.css"])
+def test_ficheiros_do_frontend_sao_servidos(caminho):
+    assert client.get(caminho).status_code == 200
