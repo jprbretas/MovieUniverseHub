@@ -35,5 +35,8 @@ def obter_catalogo(
     return Catalogo(sessao, tmdb)
 
 
-# Atalho para as rotas: `catalogo: CatalogoDep` em vez de repetir o Depends(...).
+# Atalhos para as rotas: `catalogo: CatalogoDep` em vez de repetir o Depends(...).
+# Dentro do mesmo pedido, o FastAPI reutiliza a mesma sessão em todo o lado
+# (a da rota e a do Catálogo), tal como um serviço Scoped em .NET.
+SessaoDep = Annotated[Session, Depends(obter_sessao)]
 CatalogoDep = Annotated[Catalogo, Depends(obter_catalogo)]

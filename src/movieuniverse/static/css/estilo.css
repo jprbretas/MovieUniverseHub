@@ -75,9 +75,33 @@ button, .botao {
 }
 button:hover, .botao:hover { filter: brightness(1.15); }
 
-.menu { margin-left: auto; }
+.menu { display: flex; gap: 1rem; }
 .menu a { color: var(--texto-suave); text-decoration: none; }
 .menu a:hover { color: var(--texto); }
+
+/* --- Entrar / utilizador ------------------------------------------------------ */
+.area-utilizador { display: flex; align-items: center; gap: 0.75rem; margin-left: auto; }
+.form-entrar { display: flex; gap: 0.5rem; }
+.form-entrar input, .nova-playlist input, .menu-nova input {
+    min-width: 0;
+    padding: 0.5rem 0.8rem;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    background: var(--superficie);
+    color: var(--texto);
+}
+.form-entrar input { width: 9rem; }
+.chamar-atencao { outline: 2px solid var(--ciano); animation: abanar 0.4s; }
+@keyframes abanar { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+.botao-secundario {
+    background: none;
+    border: 1px solid var(--borda);
+    color: var(--texto-suave);
+    padding: 0.35rem 0.8rem;
+}
+.botao-secundario:hover { color: var(--texto); }
+.botao-perigo { background: none; border: 1px solid var(--erro); color: var(--erro); }
 
 /* --- Conteúdo --------------------------------------------------------------- */
 .conteudo {
@@ -104,17 +128,21 @@ button:hover, .botao:hover { filter: brightness(1.15); }
 }
 
 .card {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
+    position: relative; /* para a ★ e o ✕ ficarem por cima do cartaz */
     padding: 0.6rem;
     border-radius: var(--raio);
     background: var(--superficie);
-    color: var(--texto);
-    text-decoration: none;
     transition: transform 0.15s, background 0.15s;
 }
 .card:hover { transform: translateY(-3px); background: var(--superficie-alta); }
+.card-link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    color: var(--texto);
+    text-decoration: none;
+}
+.card.indisponivel { color: var(--texto-suave); text-align: center; padding: 2rem 0.6rem; }
 .card-titulo { font-weight: 600; }
 .card-info { font-size: 0.85rem; color: var(--texto-suave); }
 
@@ -181,6 +209,91 @@ button:hover, .botao:hover { filter: brightness(1.15); }
 
 .sobre { max-width: 720px; }
 
+/* --- Estrela ★ e menu "Guardar nas playlists" ---------------------------------- */
+.estrela {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2.2rem;
+    height: 2.2rem;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(15, 16, 32, 0.8);
+    color: var(--texto);
+    font-size: 1.2rem;
+    line-height: 1;
+}
+.estrela.ativa { color: #fbbf24; }
+.ficha-cabecalho { display: flex; align-items: flex-start; gap: 1rem; }
+.ficha-cabecalho .estrela { position: static; flex-shrink: 0; margin-top: 0.3rem; }
+
+.tirar {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(15, 16, 32, 0.8);
+    color: var(--erro);
+}
+
+.menu-estrela {
+    position: absolute;
+    z-index: 10;
+    width: 260px;
+    padding: 0.8rem;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    background: var(--superficie-alta);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+.menu-titulo { margin: 0 0 0.5rem; font-size: 0.8rem; color: var(--texto-suave); text-transform: uppercase; }
+.menu-linha { display: flex; gap: 0.5rem; align-items: center; padding: 0.3rem 0; cursor: pointer; }
+.menu-vazio { color: var(--texto-suave); font-size: 0.9rem; }
+.menu-nova { display: flex; gap: 0.4rem; margin-top: 0.6rem; }
+.menu-nova input { flex: 1; }
+.menu-nova button { padding: 0.4rem 0.7rem; }
+.menu-erro { color: var(--erro); font-size: 0.85rem; margin: 0.5rem 0 0; }
+
+/* --- Playlists ---------------------------------------------------------------- */
+.grelha-playlists {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+}
+.cartao-playlist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1.2rem;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    background: linear-gradient(135deg, var(--superficie), var(--superficie-alta));
+    color: var(--texto);
+    text-decoration: none;
+}
+.cartao-playlist:hover { border-color: var(--roxo); }
+.cartao-playlist-nome { font-size: 1.1rem; font-weight: 600; }
+.nova-playlist { display: flex; gap: 0.5rem; max-width: 460px; margin-top: 1.5rem; }
+.nova-playlist input { flex: 1; }
+
+.cabecalho-playlist { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+.cabecalho-playlist .titulo-ecra { margin: 0; }
+
+/* --- A minha nota ------------------------------------------------------------- */
+.a-minha-nota { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; }
+.botoes-nota { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.botao-nota {
+    width: 2.2rem;
+    padding: 0.4rem 0;
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    color: var(--texto);
+}
+.botao-nota.selecionada { background: var(--ciano); color: var(--fundo); font-weight: 700; }
+
 /* --- Rodapé ----------------------------------------------------------------- */
 .rodape {
     padding: 1rem 2rem;
@@ -193,8 +306,12 @@ button:hover, .botao:hover { filter: brightness(1.15); }
 /* --- Ecrãs pequenos (telemóvel) --------------------------------------------- */
 @media (max-width: 700px) {
     .topo { padding: 1rem; }
-    /* 1.ª linha: marca + menu; 2.ª linha: a pesquisa a toda a largura */
-    .pesquisa { order: 3; flex-basis: 100%; max-width: none; }
+    /* 1.ª linha: marca + menu; 2.ª: entrar; 3.ª: a pesquisa a toda a largura */
+    .pesquisa { order: 4; flex-basis: 100%; max-width: none; }
+    .area-utilizador { order: 3; flex-basis: 100%; margin-left: 0; }
+    .form-entrar { flex: 1; }
+    .form-entrar input { flex: 1; width: auto; }
+    .menu { margin-left: auto; }
     .ficha { grid-template-columns: 1fr; }
     .poster-grande { max-width: 260px; }
     .grelha { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }

@@ -33,6 +33,9 @@ def test_pagina_inicial_e_servida():
     assert "MovieUniverse" in resposta.text
 
 
-@pytest.mark.parametrize("caminho", ["/js/app.js", "/js/api.js", "/css/estilo.css"])
+@pytest.mark.parametrize(
+    "caminho",
+    ["/js/app.js", "/js/api.js", "/js/util.js", "/js/sessao.js", "/js/estrela.js", "/css/estilo.css"],
+)
 def test_ficheiros_do_frontend_sao_servidos(caminho):
     assert client.get(caminho).status_code == 200

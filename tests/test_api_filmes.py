@@ -1,22 +1,9 @@
 """Testes dos endpoints de filmes, ponta a ponta: HTTP -> rota -> Catálogo -> TMDB falsa.
 
-Trocamos a dependência `obter_catalogo` por um Catálogo ligado à TMDB falsa e à base de
-dados em memória (≈ ConfigureTestServices no WebApplicationFactory do ASP.NET).
+O `api` vem do conftest.py: a app com a base de dados em memória e a TMDB falsa.
 """
 import httpx2
 import pytest
-from fastapi.testclient import TestClient
-
-from movieuniverse.api import app
-from movieuniverse.catalogo import Catalogo
-from movieuniverse.dependencias import obter_catalogo
-
-
-@pytest.fixture
-def api(sessao, cliente):
-    app.dependency_overrides[obter_catalogo] = lambda: Catalogo(sessao, cliente)
-    yield TestClient(app)
-    app.dependency_overrides.clear()  # não deixar a troca "vazar" para outros testes
 
 
 def test_pesquisa_devolve_filmes_com_nomes_em_portugues(api, tmdb_falsa, json_tmdb):

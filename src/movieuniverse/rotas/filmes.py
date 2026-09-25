@@ -8,7 +8,9 @@ from typing import Annotated
 
 from fastapi import APIRouter, Path, Query
 
-from movieuniverse.dependencias import CatalogoDep
+from movieuniverse import servicos
+from movieuniverse.dependencias import CatalogoDep, SessaoDep
+from movieuniverse.esquemas import NotaSaida, NotasDoFilme
 from movieuniverse.tmdb import PAGINA_MAXIMA, FilmeDetalhe, PaginaPesquisa
 
 router = APIRouter(prefix="/api/filmes", tags=["filmes"])
@@ -40,3 +42,19 @@ def detalhe_filme(
 ) -> FilmeDetalhe:
     """Ficha completa de um filme: sinopse, géneros, duração, poster e nota da TMDB."""
     return catalogo.detalhe(tmdb_id)
+
+
+@router.get("/{tmdb_id}/notas")
+def notas_do_filme(
+    sessao: SessaoDep,
+    tmdb_id: Annotated[int, Path(gt=0, description="Id do filme na TMDB")],
+) -> NotasDoFilme:
+    """As notas que os utilizadores da aplicação deram a este filme, e a média delas."""
+    notas = servicos.notas_do_filme(sessao, tmdb_id)
+    media = round(sum(n.estrelas for n in notas) / len(notas), 2) if notas else None
+    return NotasDoFilme(
+        tmdb_id=tmdb_id,
+        num_notas=len(notas),
+        media=media,
+        notas=[NotaSaida.de(n) for n in notas],
+    )

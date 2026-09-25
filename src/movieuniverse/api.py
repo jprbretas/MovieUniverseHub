@@ -14,7 +14,8 @@ from fastapi.staticfiles import StaticFiles
 from movieuniverse.config import get_settings
 from movieuniverse.db import criar_tabelas
 from movieuniverse.dependencias import obter_cliente_tmdb
-from movieuniverse.rotas import filmes
+from movieuniverse.rotas import filmes, playlists, utilizadores
+from movieuniverse.servicos import NaoEncontrado
 from movieuniverse.tmdb import (
     ErroTMDB,
     FilmeNaoEncontrado,
@@ -44,6 +45,8 @@ app = FastAPI(
 
 # --- Rotas -------------------------------------------------------------------
 app.include_router(filmes.router)  # ≈ app.MapControllers()
+app.include_router(utilizadores.router)
+app.include_router(playlists.router)
 
 
 @app.get("/api/health", tags=["sistema"])
@@ -69,6 +72,11 @@ CODIGOS_HTTP = {
 async def tratar_erro_tmdb(pedido: Request, erro: ErroTMDB) -> JSONResponse:
     codigo = CODIGOS_HTTP.get(type(erro), 502)  # 502 = resposta inesperada da TMDB
     return JSONResponse(status_code=codigo, content={"detail": str(erro)})
+
+
+@app.exception_handler(NaoEncontrado)
+async def tratar_nao_encontrado(pedido: Request, erro: NaoEncontrado) -> JSONResponse:
+    return JSONResponse(status_code=404, content={"detail": str(erro)})
 
 
 # --- Frontend -----------------------------------------------------------------

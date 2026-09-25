@@ -94,3 +94,23 @@ def sessao():
     with Session(engine) as s:
         yield s
     engine.dispose()
+
+
+@pytest.fixture
+def api(sessao, cliente):
+    """Um cliente HTTP para a nossa API, ligado à base de dados em memória e à TMDB falsa.
+
+    Trocamos as dependências reais pelas de teste (≈ ConfigureTestServices no
+    WebApplicationFactory do ASP.NET).
+    """
+    from fastapi.testclient import TestClient
+
+    from movieuniverse.api import app
+    from movieuniverse.catalogo import Catalogo
+    from movieuniverse.db import obter_sessao
+    from movieuniverse.dependencias import obter_catalogo
+
+    app.dependency_overrides[obter_sessao] = lambda: sessao
+    app.dependency_overrides[obter_catalogo] = lambda: Catalogo(sessao, cliente)
+    yield TestClient(app)
+    app.dependency_overrides.clear()  # não deixar a troca "vazar" para outros testes
