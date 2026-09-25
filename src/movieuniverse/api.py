@@ -4,19 +4,30 @@ Equivalente C#: a parte do Program.cs entre o builder.Build() e os app.MapGet(..
 Este módulo NÃO arranca servidor nenhum; quem o arranca é o __main__.py (via uvicorn).
 Por isso os testes podem importar o `app` daqui sem ligar nada.
 """
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from movieuniverse.config import get_settings
+from movieuniverse.db import criar_tabelas
 
 PASTA_STATIC = Path(__file__).parent / "static"
+
+
+@asynccontextmanager
+async def ciclo_de_vida(app: FastAPI):
+    """Código que corre ao arrancar (antes do yield) e ao desligar (depois do yield)."""
+    criar_tabelas()  # ≈ context.Database.EnsureCreated() no arranque de uma app .NET
+    yield
+
 
 app = FastAPI(
     title="MovieUniverse Hub",
     description="Pesquisar filmes (API TMDB), criar playlists e dar notas.",
     version="0.1.0",
+    lifespan=ciclo_de_vida,
 )
 
 

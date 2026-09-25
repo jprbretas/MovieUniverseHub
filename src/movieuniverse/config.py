@@ -28,6 +28,8 @@ class Settings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = 8000
     reload: bool = True  # reinicia ao gravar um .py; o F5 do VS Code desliga-o (ver launch.json)
+    # Ficheiro SQLite em dados/ (≈ a connection string do appsettings.json).
+    database_url: str = f"sqlite:///{(RAIZ_PROJETO / 'dados' / 'movieuniverse.db').as_posix()}"
 
     @property
     def tmdb_configurada(self) -> bool:

@@ -2,7 +2,7 @@
 .env
 
 # Ambiente virtual Python (≈ pastas bin/ e obj/ do .NET: gera-se localmente)
-.venv/
+.venv*/
 venv/
 
 # Cache do Python e das ferramentas

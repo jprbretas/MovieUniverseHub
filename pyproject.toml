@@ -16,6 +16,7 @@ dependencies = [
     "uvicorn[standard]>=0.53",  # servidor HTTP que corre a app (≈ Kestrel)
     "pydantic-settings>=2.15",  # lê o .env para um objeto tipado (≈ IOptions<T>)
     "httpx2>=2.13",             # cliente HTTP para chamar a TMDB (≈ HttpClient)
+    "sqlalchemy>=2.0.54",       # ORM para a base de dados (≈ Entity Framework Core)
 ]
 
 [project.optional-dependencies]
