@@ -20,6 +20,7 @@ O ClienteTMDB continua a não saber nada de base de dados; só o Catálogo sabe.
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
 
+from sqlalchemy.dialects.sqlite import insert as insert_sqlite
 from sqlalchemy.orm import Session
 
 from movieuniverse.entidades import FilmeCache, PesquisaCache
@@ -72,15 +73,17 @@ class Catalogo:
                 return FilmeDetalhe.model_validate_json(registo.dados_json)
             raise  # sem cópia antiga: o erro segue para quem chamou
 
-        if registo is None:
-            registo = FilmeCache(tmdb_id=tmdb_id)
-            self.sessao.add(registo)
-        registo.titulo = filme.titulo
-        registo.media_votos = filme.media_votos
-        registo.num_votos = filme.num_votos
-        registo.dados_json = filme.model_dump_json()  # objeto -> texto JSON
-        registo.atualizado_em = self.relogio()
-        self.sessao.commit()
+        self._guardar(
+            FilmeCache,
+            chave={"tmdb_id": tmdb_id},
+            valores={
+                "titulo": filme.titulo,
+                "media_votos": filme.media_votos,
+                "num_votos": filme.num_votos,
+                "dados_json": filme.model_dump_json(),  # objeto -> texto JSON
+                "atualizado_em": self.relogio(),
+            },
+        )
         return filme
 
     # --- Pesquisa -------------------------------------------------------------
@@ -102,15 +105,31 @@ class Catalogo:
                 return PaginaPesquisa.model_validate_json(registo.dados_json)
             raise
 
-        if registo is None:
-            registo = PesquisaCache(chave=chave)
-            self.sessao.add(registo)
-        registo.dados_json = resultado.model_dump_json()
-        registo.atualizado_em = self.relogio()
-        self.sessao.commit()
+        self._guardar(
+            PesquisaCache,
+            chave={"chave": chave},
+            valores={"dados_json": resultado.model_dump_json(), "atualizado_em": self.relogio()},
+        )
         return resultado
 
     # --- Auxiliares -----------------------------------------------------------
+
+    def _guardar(self, tabela, chave: dict, valores: dict) -> None:
+        """Grava na cache com um "upsert": INSERT ... ON CONFLICT DO UPDATE.
+
+        Porquê não "ler, e se não existir fazer INSERT"? Porque dois pedidos ao mesmo tempo
+        (a ficha pede o filme e as notas em paralelo) podiam ambos não encontrar o registo
+        e ambos tentar o INSERT: o segundo falhava com "UNIQUE constraint failed".
+        O upsert faz tudo numa só instrução atómica (≈ MERGE em SQL Server).
+        """
+        instrucao = (
+            insert_sqlite(tabela)
+            .values(**chave, **valores)
+            .on_conflict_do_update(index_elements=list(chave), set_=valores)
+        )
+        self.sessao.execute(instrucao)
+        self.sessao.commit()
+
 
     def _ainda_valido(self, atualizado_em: datetime) -> bool:
         # O SQLite devolve as datas sem fuso; sabemos que foram gravadas em UTC.

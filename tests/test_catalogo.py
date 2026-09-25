@@ -80,3 +80,30 @@ def test_pesquisas_iguais_com_maiusculas_e_espacos_usam_a_mesma_cache(
     catalogo.pesquisar("  matrix ")
 
     assert len(tmdb_falsa.pedidos) == 1
+
+
+def test_outro_pedido_a_gravar_o_mesmo_filme_ao_mesmo_tempo_nao_da_erro(tmp_path, json_tmdb, relogio):
+    """Reproduz a race condition: enquanto este pedido espera pela TMDB, outro pedido
+    (outra sessão) grava o mesmo filme na cache. Antes do upsert, isto dava
+    "UNIQUE constraint failed"."""
+    from sqlalchemy.orm import Session
+
+    from movieuniverse.db import criar_engine, criar_tabelas
+    from movieuniverse.tmdb import ClienteTMDB
+
+    engine = criar_engine(f"sqlite:///{tmp_path / 'teste.db'}")  # ficheiro: ligações separadas
+    criar_tabelas(engine)
+    dados = json_tmdb("filme_27205.json")
+
+    def tmdb_lenta(pedido):
+        with Session(engine) as outro_pedido:
+            outro_pedido.add(FilmeCache(tmdb_id=27205, titulo="versão do outro pedido", media_votos=1,
+                                        num_votos=1, dados_json="{}", atualizado_em=relogio()))
+            outro_pedido.commit()
+        return httpx2.Response(200, json=dados)
+
+    with Session(engine) as sessao, ClienteTMDB("t", transport=httpx2.MockTransport(tmdb_lenta)) as cliente:
+        filme = Catalogo(sessao, cliente, relogio=relogio).detalhe(27205)
+        assert filme.tmdb_id == 27205
+        assert sessao.get(FilmeCache, 27205).titulo == filme.titulo  # ficou a versão mais recente
+    engine.dispose()
