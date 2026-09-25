@@ -33,3 +33,26 @@ Modelo para cada entrada:
 - **O que fiz em vez disso:** troquei `alias` por `validation_alias`, que só é usado para **ler**
   o JSON da TMDB. As respostas da API e o Swagger passaram a usar os nomes em português, e
   confirmei os dois no `/openapi.json`.
+
+## 3. Número de votos "imaginários" da nota combinada (m = 500 → m = 100)
+- **Contexto:** passo 7, escolha da regra da nota combinada (média bayesiana).
+- **Sugestão da IA:** usar m = 500 votos imaginários, inspirado no Top 250 do IMDb.
+- **Problema / porque não usei:** questionei o valor porque a MovieUniverse é uma aplicação
+  pequena. Ao analisar, vimos que o tamanho da aplicação pesa pouco (a maioria dos votos vem
+  da TMDB), mas que 500 era mesmo demasiado desconfiado por outra razão: com 300 votos, a
+  margem de erro de uma média já é de cerca de ±0,1, e mesmo assim um filme com 7,5 e 300 votos
+  ficava com 6,9. O IMDb usa um valor alto porque quer uma lista exclusiva, que não é o nosso caso.
+- **O que fiz em vez disso:** escolhi m = 100 (margem de erro de cerca de ±0,2), que continua
+  a garantir os casos do enunciado (8,9 com 12 votos → 6,8; 8,4 com 30 000 votos → 8,4).
+
+## 4. Race condition na cache ao abrir a ficha de um filme
+- **Contexto:** passo 7. O endpoint das notas passou a consultar também o catálogo (para a
+  nota combinada), e a ficha pede o filme e as notas em paralelo.
+- **Sugestão da IA:** a cache fazia "ler o registo; se não existir, fazer INSERT".
+- **Problema:** num teste no navegador, os dois pedidos paralelos não encontravam o filme na
+  cache e ambos tentavam o INSERT; o segundo falhava com `UNIQUE constraint failed` e a ficha
+  mostrava um erro.
+- **O que fiz em vez disso:** a cache passou a gravar com um upsert
+  (`INSERT ... ON CONFLICT DO UPDATE`), que é atómico. Acrescentei um teste que reproduz a
+  situação com duas sessões e que falhava com o código antigo.
+

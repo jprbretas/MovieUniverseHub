@@ -102,6 +102,14 @@ pytest
 Os testes não usam a internet: as respostas da TMDB vêm de ficheiros guardados em
 `tests/fixtures/tmdb/` e a base de dados é criada em memória para cada teste.
 
+## Nota combinada
+
+Cada filme tem uma nota de 0 a 10 que junta a média da TMDB e as notas dos utilizadores da
+aplicação, pesando o número de votos de cada lado (média bayesiana com 100 votos
+"imaginários" de nota 6,5). A ficha do filme mostra-a ao lado da nota da TMDB, com o número de
+votos em que se baseia e uma explicação. A regra e a sua justificação estão no `DECISIONS.md`,
+secção 4, e o código em `src/movieuniverse/nota_combinada.py`.
+
 ## Cache das respostas da TMDB
 
 As respostas da TMDB ficam guardadas na própria base de dados SQLite, nas tabelas
@@ -132,6 +140,7 @@ MovieUniverseHub/
 │   ├── rotas/             # endpoints: filmes, utilizadores, playlists
 │   ├── servicos.py        # regras de negócio de utilizadores, playlists e notas
 │   ├── importar.py        # importação do seed_playlists.json
+│   ├── nota_combinada.py  # regra da nota combinada (função pura)
 │   ├── esquemas.py        # formato do JSON de entrada e saída da API (DTOs)
 │   ├── dependencias.py    # injeção de dependências (sessão, cliente TMDB, catálogo)
 │   ├── config.py          # leitura do .env
