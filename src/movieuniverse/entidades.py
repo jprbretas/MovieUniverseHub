@@ -7,12 +7,15 @@ navegação (≈ `public List<Playlist> Playlists { get; set; }`).
 As restrições (chave primária composta, UNIQUE, CHECK) garantem as regras do enunciado
 na própria base de dados, mesmo que algum código se engane.
 
-Os filmes em si NÃO têm tabela aqui: guardamos só o `tmdb_id`, que é a referência ao
-filme na TMDB. Os dados do filme (título, notas...) vêm da TMDB e da cache (próxima parte).
+As playlists e as notas guardam só o `tmdb_id` (a referência ao filme na TMDB). Os dados
+dos filmes (título, notas da TMDB...) ficam nas tabelas de CACHE, no fim deste ficheiro.
+
+Nota sobre datas: o SQLite não guarda o fuso horário. Gravamos sempre em UTC e, ao ler,
+as datas vêm sem fuso ("naive"); quem as compara tem de as tratar como UTC.
 """
 from datetime import date, datetime, timezone
 
-from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint
+from sqlalchemy import CheckConstraint, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from movieuniverse.db import Base
@@ -86,3 +89,31 @@ class Nota(Base):
     data: Mapped[date] = mapped_column(default=lambda: agora().date())
 
     utilizador: Mapped[Utilizador] = relationship(back_populates="notas")
+
+
+# ---------------------------------------------------------------------------
+# Cache das respostas da TMDB (ver catalogo.py)
+# ---------------------------------------------------------------------------
+class FilmeCache(Base):
+    """Ficha de um filme (FilmeDetalhe) guardada para não voltar a pedi-la à TMDB."""
+
+    __tablename__ = "filmes_cache"
+
+    tmdb_id: Mapped[int] = mapped_column(primary_key=True)
+    # Cópia de alguns campos em colunas próprias, para podermos fazer consultas
+    # (ex.: o jogo vai querer só filmes com muitos votos) sem abrir o JSON.
+    titulo: Mapped[str] = mapped_column(String(300))
+    media_votos: Mapped[float]
+    num_votos: Mapped[int]
+    dados_json: Mapped[str] = mapped_column(Text)  # o FilmeDetalhe completo, em JSON
+    atualizado_em: Mapped[datetime]
+
+
+class PesquisaCache(Base):
+    """Uma página de resultados de pesquisa, identificada por língua + título + página."""
+
+    __tablename__ = "pesquisas_cache"
+
+    chave: Mapped[str] = mapped_column(String(300), primary_key=True)  # ex.: "pt-PT|matrix|1"
+    dados_json: Mapped[str] = mapped_column(Text)
+    atualizado_em: Mapped[datetime]
