@@ -48,6 +48,16 @@ pip install -e ".[dev]"
 cp .env.example .env      # depois abre o .env e cola o token da TMDB
 ```
 
+## Importar os dados de exemplo
+
+```bash
+python -m movieuniverse importar-seed
+```
+
+Carrega o `dados/seed_playlists.json` (3 utilizadores, 10 playlists e 20 notas) e mostra um
+relatório do que foi criado, com avisos sobre os problemas encontrados nos dados. Pode correr
+mais do que uma vez sem duplicar nada. As decisões estão no `DECISIONS.md`, secção 6.
+
 ## Executar
 
 ```bash
@@ -66,6 +76,17 @@ sobe o servidor com o debugger e abre o navegador.
 |---|---|---|
 | GET | `/api/filmes?titulo=Matrix&pagina=1` | pesquisa filmes por título (20 por página) |
 | GET | `/api/filmes/{tmdb_id}` | ficha de um filme (sinopse, géneros, duração, poster, nota TMDB) |
+| GET | `/api/filmes/{tmdb_id}/notas` | notas dos utilizadores da aplicação para o filme e a média |
+| GET | `/api/utilizadores` | lista de utilizadores |
+| POST | `/api/utilizadores` | "entrar" com um nome (cria o utilizador se não existir) |
+| GET | `/api/utilizadores/{id}/playlists` | playlists do utilizador, com os ids dos filmes |
+| POST | `/api/utilizadores/{id}/playlists` | cria uma playlist |
+| PUT | `/api/utilizadores/{id}/notas/{tmdb_id}` | dá ou altera a nota (1 a 10) do utilizador ao filme |
+| DELETE | `/api/utilizadores/{id}/notas/{tmdb_id}` | retira a nota |
+| GET | `/api/playlists/{id}` | playlist com os dados de cada filme |
+| DELETE | `/api/playlists/{id}` | apaga a playlist (fica marcada como apagada) |
+| PUT | `/api/playlists/{id}/filmes/{tmdb_id}` | adiciona o filme à playlist (repetir não duplica) |
+| DELETE | `/api/playlists/{id}/filmes/{tmdb_id}` | tira o filme da playlist |
 | GET | `/api/health` | estado da API e se o token da TMDB está configurado |
 
 Erros: `404` filme inexistente · `422` parâmetros inválidos · `503` TMDB indisponível ·
@@ -108,7 +129,10 @@ MovieUniverseHub/
 ├── src/movieuniverse/     # código da aplicação
 │   ├── __main__.py        # ponto de entrada: "python -m movieuniverse"
 │   ├── api.py             # app FastAPI: regista rotas, erros e ficheiros estáticos
-│   ├── rotas/filmes.py    # endpoints /api/filmes
+│   ├── rotas/             # endpoints: filmes, utilizadores, playlists
+│   ├── servicos.py        # regras de negócio de utilizadores, playlists e notas
+│   ├── importar.py        # importação do seed_playlists.json
+│   ├── esquemas.py        # formato do JSON de entrada e saída da API (DTOs)
 │   ├── dependencias.py    # injeção de dependências (sessão, cliente TMDB, catálogo)
 │   ├── config.py          # leitura do .env
 │   ├── tmdb.py            # cliente da API da TMDB e modelos das respostas

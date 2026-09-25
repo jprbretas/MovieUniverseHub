@@ -12,6 +12,13 @@ Os utilizadores identificam-se apenas pelo **nome**, sem palavra-passe, como o e
 permite. Assim não se guardam dados pessoais (secção 6), e os utilizadores do
 `seed_playlists.json` (que só têm nome) funcionam sem casos especiais.
 
+"Entrar" é só escrever o nome: se já existir, usa-se esse utilizador; se não, é criado.
+O frontend lembra-se de quem entrou (no navegador) e envia o id do utilizador no caminho
+dos pedidos (`/api/utilizadores/{id}/...`). Consequência assumida: sem palavra-passe,
+qualquer pessoa com acesso à aplicação pode agir como outro utilizador. Para uma aplicação
+local de demonstração isto é aceitável; com login, seria preciso verificar o dono de cada
+playlist e nota em cada pedido.
+
 ## 3. Base de dados e cache
 
 - **Os filmes não têm tabela própria.** Playlists e notas guardam só o `tmdb_id`, que é a
@@ -38,4 +45,22 @@ permite. Assim não se guardam dados pessoais (secção 6), e os utilizadores do
 
 ## 6. Problemas encontrados nos dados
 
-*(a preencher no passo 6: importação do seed)*
+O `dados/seed_playlists.json` tem armadilhas de propósito. A importação
+(`python -m movieuniverse importar-seed`, código em `src/movieuniverse/importar.py`) trata-as assim:
+
+| Problema no seed | Decisão |
+|---|---|
+| Playlists marcadas como apagadas (pl-03 "Rascunho antigo", pl-07 "Lista de teste") | São importadas **com `apagada = sim`**, o mesmo soft delete usado na aplicação. Ficam na base de dados, fiéis ao ficheiro, mas não aparecem em lado nenhum. |
+| O filme 27205 aparece duas vezes na pl-01 (ordem 1 e ordem 6) | Fica **só a 1.ª ocorrência** (ordem 1). A repetição é ignorada e aparece como aviso no relatório. A chave primária `(playlist_id, tmdb_id)` impede, de qualquer forma, que o mesmo filme entre duas vezes. |
+| Filmes que só existem em playlists apagadas (289, 348, 550, 807) | Ficam guardados dentro dessas playlists, mas não aparecem na aplicação nem contam para comparações. O relatório da importação lista-os. |
+| Filmes com o mesmo título e anos diferentes (ex.: dois "Dune", dois "O Rei Leão") | A aplicação identifica os filmes sempre pelo `tmdb_id`, nunca pelo título, por isso não há confusão. Os cards e a ficha mostram o ano para o utilizador os distinguir. |
+
+**Correr a importação duas vezes não duplica nada.** Os utilizadores são reconhecidos pelo nome
+(sem distinguir maiúsculas), as playlists pelo id do seed (guardado em `Playlist.id_seed`) e as
+notas pelo par (utilizador, filme). A importação **só cria o que falta**: nunca altera nem apaga
+dados que já existem, por isso as alterações feitas na aplicação (uma nota mudada, um filme
+retirado) sobrevivem a uma nova importação.
+
+Outras escolhas: as notas mantêm a data do ficheiro; a importação não contacta a TMDB (guarda
+só os `tmdb_id`, e os dados dos filmes chegam quando forem vistos); tudo corre numa transação,
+por isso um ficheiro com formato errado não deixa nada a meio.
