@@ -60,6 +60,18 @@ sobe o servidor com o debugger e abre o navegador.
 - Aplicação: <http://127.0.0.1:8000>
 - Documentação da API (Swagger): <http://127.0.0.1:8000/docs>
 
+## API REST
+
+| Método | Caminho | Descrição |
+|---|---|---|
+| GET | `/api/filmes?titulo=Matrix&pagina=1` | pesquisa filmes por título (20 por página) |
+| GET | `/api/filmes/{tmdb_id}` | ficha de um filme (sinopse, géneros, duração, poster, nota TMDB) |
+| GET | `/api/health` | estado da API e se o token da TMDB está configurado |
+
+Erros: `404` filme inexistente · `422` parâmetros inválidos · `503` TMDB indisponível ·
+`500` token da TMDB em falta ou inválido. O corpo do erro é `{"detail": "mensagem"}`.
+A especificação OpenAPI completa está em `/openapi.json`.
+
 ## Testes
 
 ```bash
@@ -95,7 +107,9 @@ SQLite e não em memória, também sobrevive quando a aplicação reinicia.
 MovieUniverseHub/
 ├── src/movieuniverse/     # código da aplicação
 │   ├── __main__.py        # ponto de entrada: "python -m movieuniverse"
-│   ├── api.py             # app FastAPI (rotas + ficheiros estáticos)
+│   ├── api.py             # app FastAPI: regista rotas, erros e ficheiros estáticos
+│   ├── rotas/filmes.py    # endpoints /api/filmes
+│   ├── dependencias.py    # injeção de dependências (sessão, cliente TMDB, catálogo)
 │   ├── config.py          # leitura do .env
 │   ├── tmdb.py            # cliente da API da TMDB e modelos das respostas
 │   ├── catalogo.py        # TMDB + cache na base de dados

@@ -13,6 +13,7 @@ from pathlib import Path
 
 from sqlalchemy import Engine, create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from movieuniverse.config import get_settings
 
@@ -23,10 +24,21 @@ class Base(DeclarativeBase):
 
 def criar_engine(url: str) -> Engine:
     """Cria o engine. Para SQLite em ficheiro, garante que a pasta existe."""
-    if url.startswith("sqlite:///"):
+    if url.startswith("sqlite:///") and not url.endswith(":memory:"):
         Path(url.removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
 
-    engine = create_engine(url)
+    opcoes: dict = {}
+    if url.startswith("sqlite"):
+        # O FastAPI atende cada pedido numa thread do pool; o sqlite3 por omissão recusa
+        # ligações usadas noutra thread. Desligamos essa verificação (a sessão continua a
+        # ser uma por pedido, por isso é seguro).
+        opcoes["connect_args"] = {"check_same_thread": False}
+    if url in ("sqlite://", "sqlite:///:memory:"):
+        # Em memória, cada ligação nova seria uma base de dados VAZIA e diferente.
+        # O StaticPool reutiliza sempre a mesma ligação (usado nos testes).
+        opcoes["poolclass"] = StaticPool
+
+    engine = create_engine(url, **opcoes)
 
     if url.startswith("sqlite"):
         # O SQLite IGNORA as chaves estrangeiras por omissão! Este "evento" corre a cada

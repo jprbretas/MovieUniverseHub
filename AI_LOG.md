@@ -21,3 +21,15 @@ Modelo para cada entrada:
   A sugestão vinha de conhecimento anterior a essa mudança.
 - **O que fiz em vez disso:** confirmei no PyPI que o `httpx2` é do mesmo autor (Tom Christie),
   troquei a dependência no `pyproject.toml` e voltei a correr os testes, que passaram sem aviso.
+
+## 2. Respostas da API sairiam com os nomes em inglês da TMDB (alias → validation_alias)
+- **Contexto:** passo 3, primeiros endpoints REST (`/api/filmes`).
+- **Sugestão da IA:** nos modelos Pydantic, ligar os nomes em português aos campos da TMDB com
+  `Field(alias="title")`.
+- **Problema:** ao testar os endpoints, vimos que o FastAPI serializa as respostas **pelo alias**
+  por omissão. A nossa API devolveria `title`, `vote_count`... em vez de `titulo`, `num_votos`.
+  A opção `response_model_by_alias=False` corrigia o JSON, mas o Swagger continuava a mostrar os
+  nomes em inglês, ou seja, a documentação não batia certo com a resposta real.
+- **O que fiz em vez disso:** troquei `alias` por `validation_alias`, que só é usado para **ler**
+  o JSON da TMDB. As respostas da API e o Swagger passaram a usar os nomes em português, e
+  confirmei os dois no `/openapi.json`.

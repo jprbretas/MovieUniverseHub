@@ -5,8 +5,9 @@ Este módulo tem duas partes:
   2. O ClienteTMDB, que faz os pedidos HTTP e devolve esses modelos.
 
 Os campos da TMDB estão em inglês (title, vote_count...). Nos nossos modelos usamos
-nomes em português e ligamo-los ao JSON com `alias`, tal como o [JsonPropertyName]
-em C#. Assim o resto da aplicação nunca precisa de saber como a TMDB chama as coisas.
+nomes em português e ligamo-los ao JSON da TMDB com `validation_alias` (≈ [JsonPropertyName]
+em C#, mas só para LER). Ao escrever (ex.: nas respostas da nossa API e no Swagger) usam-se
+os nomes em português. Assim o resto da aplicação nunca vê os nomes da TMDB.
 
 Só declaramos os campos de que precisamos: o Pydantic ignora os restantes
 (ex.: o campo não documentado "softcore" que apareceu nas respostas reais).
@@ -40,7 +41,7 @@ class ModeloTMDB(BaseModel):
     """Configuração comum a todos os modelos (≈ uma classe base com os atributos de JSON)."""
 
     model_config = ConfigDict(
-        validate_by_alias=True,  # lê o JSON da TMDB pelos nomes em inglês (alias)...
+        validate_by_alias=True,  # lê o JSON da TMDB pelos nomes em inglês (validation_alias)...
         validate_by_name=True,   # ...e também aceita os nomes em português (útil nos testes)
         extra="ignore",          # campos que não declarámos são descartados
     )
@@ -48,19 +49,19 @@ class ModeloTMDB(BaseModel):
 
 class Genero(ModeloTMDB):
     id: int
-    nome: str = Field(alias="name")
+    nome: str = Field(validation_alias="name")
 
 
 class FilmeResumo(ModeloTMDB):
     """Um filme como aparece nos resultados de pesquisa (/search/movie)."""
 
-    tmdb_id: int = Field(alias="id")
-    titulo: str = Field(alias="title")
-    titulo_original: str = Field(default="", alias="original_title")
-    data_estreia: date | None = Field(default=None, alias="release_date")
-    poster_path: str | None = Field(default=None, alias="poster_path")
-    media_votos: float = Field(default=0.0, alias="vote_average")
-    num_votos: int = Field(default=0, alias="vote_count")
+    tmdb_id: int = Field(validation_alias="id")
+    titulo: str = Field(validation_alias="title")
+    titulo_original: str = Field(default="", validation_alias="original_title")
+    data_estreia: date | None = Field(default=None, validation_alias="release_date")
+    poster_path: str | None = Field(default=None, validation_alias="poster_path")
+    media_votos: float = Field(default=0.0, validation_alias="vote_average")
+    num_votos: int = Field(default=0, validation_alias="vote_count")
 
     @field_validator("data_estreia", mode="before")
     @classmethod
@@ -89,9 +90,9 @@ class FilmeResumo(ModeloTMDB):
 class FilmeDetalhe(FilmeResumo):
     """Um filme com todos os dados da ficha (/movie/{id}). Herda tudo do FilmeResumo."""
 
-    sinopse: str = Field(default="", alias="overview")
-    generos: list[Genero] = Field(default_factory=list, alias="genres")
-    duracao_min: int | None = Field(default=None, alias="runtime")
+    sinopse: str = Field(default="", validation_alias="overview")
+    generos: list[Genero] = Field(default_factory=list, validation_alias="genres")
+    duracao_min: int | None = Field(default=None, validation_alias="runtime")
 
     @field_validator("sinopse", mode="before")
     @classmethod
@@ -108,10 +109,10 @@ class FilmeDetalhe(FilmeResumo):
 class PaginaPesquisa(ModeloTMDB):
     """Uma página de resultados de /search/movie (a TMDB devolve 20 por página)."""
 
-    pagina: int = Field(alias="page")
-    total_paginas: int = Field(alias="total_pages")
-    total_resultados: int = Field(alias="total_results")
-    filmes: list[FilmeResumo] = Field(alias="results")
+    pagina: int = Field(validation_alias="page")
+    total_paginas: int = Field(validation_alias="total_pages")
+    total_resultados: int = Field(validation_alias="total_results")
+    filmes: list[FilmeResumo] = Field(validation_alias="results")
 
 
 # ---------------------------------------------------------------------------
