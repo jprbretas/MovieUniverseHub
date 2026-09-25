@@ -1,0 +1,423 @@
+{
+  "versao": "1.0",
+  "descricao": "Dados de exemplo do exercício MovieUniverse Hub. Importar com o comando indicado no README. Não alterar.",
+  "utilizadores": [
+    {
+      "nome": "ana"
+    },
+    {
+      "nome": "bruno"
+    },
+    {
+      "nome": "carla"
+    }
+  ],
+  "playlists": [
+    {
+      "id": "pl-01",
+      "nome": "Ficção científica",
+      "utilizador": "ana",
+      "apagada": false,
+      "filmes": [
+        {
+          "tmdb_id": 27205,
+          "ordem": 1
+        },
+        {
+          "tmdb_id": 603,
+          "ordem": 2
+        },
+        {
+          "tmdb_id": 157336,
+          "ordem": 3
+        },
+        {
+          "tmdb_id": 78,
+          "ordem": 4
+        },
+        {
+          "tmdb_id": 438631,
+          "ordem": 5
+        },
+        {
+          "tmdb_id": 27205,
+          "ordem": 6
+        }
+      ]
+    },
+    {
+      "id": "pl-02",
+      "nome": "Para rever num domingo",
+      "utilizador": "ana",
+      "apagada": false,
+      "filmes": [
+        {
+          "tmdb_id": 13,
+          "ordem": 1
+        },
+        {
+          "tmdb_id": 597,
+          "ordem": 2
+        },
+        {
+          "tmdb_id": 862,
+          "ordem": 3
+        },
+        {
+          "tmdb_id": 354912,
+          "ordem": 4
+        },
+        {
+          "tmdb_id": 8587,
+          "ordem": 5
+        }
+      ]
+    },
+    {
+      "id": "pl-03",
+      "nome": "Rascunho antigo",
+      "utilizador": "ana",
+      "apagada": true,
+      "filmes": [
+        {
+          "tmdb_id": 550,
+          "ordem": 1
+        },
+        {
+          "tmdb_id": 807,
+          "ordem": 2
+        },
+        {
+          "tmdb_id": 769,
+          "ordem": 3
+        },
+        {
+          "tmdb_id": 348,
+          "ordem": 4
+        },
+        {
+          "tmdb_id": 289,
+          "ordem": 5
+        }
+      ]
+    },
+    {
+      "id": "pl-04",
+      "nome": "Realizadores que sigo",
+      "utilizador": "ana",
+      "apagada": false,
+      "filmes": [
+        {
+          "tmdb_id": 27205,
+          "ordem": 1
+        },
+        {
+          "tmdb_id": 1124,
+          "ordem": 2
+        },
+        {
+          "tmdb_id": 77,
+          "ordem": 3
+        },
+        {
+          "tmdb_id": 155,
+          "ordem": 4
+        },
+        {
+          "tmdb_id": 157336,
+          "ordem": 5
+        }
+      ]
+    },
+    {
+      "id": "pl-05",
+      "nome": "Clássicos em falta",
+      "utilizador": "bruno",
+      "apagada": false,
+      "filmes": [
+        {
+          "tmdb_id": 238,
+          "ordem": 1
+        },
+        {
+          "tmdb_id": 680,
+          "ordem": 2
+        },
+        {
+          "tmdb_id": 278,
+          "ordem": 3
+        },
+        {
+          "tmdb_id": 769,
+          "ordem": 4
+        },
+        {
+          "tmdb_id": 841,
+          "ordem": 5
+        }
+      ]
+    },
+    {
+      "id": "pl-06",
+      "nome": "Noites de ação",
+      "utilizador": "bruno",
+      "apagada": false,
+      "filmes": [
+        {
+          "tmdb_id": 155,
+          "ordem": 1
+        },
+        {
+          "tmdb_id": 76341,
+          "ordem": 2
+        },
+        {
+          "tmdb_id": 98,
+          "ordem": 3
+        },
+        {
+          "tmdb_id": 603,
+          "ordem": 4
+        },
+        {
+          "tmdb_id": 329,
+          "ordem": 5
+        },
+        {
+          "tmdb_id": 78,
+          "ordem": 6
+        }
+      ]
+    },
+    {
+      "id": "pl-07",
+      "nome": "Lista de teste",
+      "utilizador": "bruno",
+      "apagada": true,
+      "filmes": [
+        {
+          "tmdb_id": 496243,
+          "ordem": 1
+        },
+        {
+          "tmdb_id": 244786,
+          "ordem": 2
+        },
+        {
+          "tmdb_id": 194,
+          "ordem": 3
+        }
+      ]
+    },
+    {
+      "id": "pl-08",
+      "nome": "Maratona sci-fi",
+      "utilizador": "bruno",
+      "apagada": false,
+      "filmes": [
+        {
+          "tmdb_id": 27205,
+          "ordem": 1
+        },
+        {
+          "tmdb_id": 157336,
+          "ordem": 2
+        },
+        {
+          "tmdb_id": 329865,
+          "ordem": 3
+        },
+        {
+          "tmdb_id": 152601,
+          "ordem": 4
+        },
+        {
+          "tmdb_id": 78,
+          "ordem": 5
+        }
+      ]
+    },
+    {
+      "id": "pl-09",
+      "nome": "Prémios e festivais",
+      "utilizador": "carla",
+      "apagada": false,
+      "filmes": [
+        {
+          "tmdb_id": 496243,
+          "ordem": 1
+        },
+        {
+          "tmdb_id": 244786,
+          "ordem": 2
+        },
+        {
+          "tmdb_id": 313369,
+          "ordem": 3
+        },
+        {
+          "tmdb_id": 598,
+          "ordem": 4
+        },
+        {
+          "tmdb_id": 194,
+          "ordem": 5
+        }
+      ]
+    },
+    {
+      "id": "pl-10",
+      "nome": "Ver com os miúdos",
+      "utilizador": "carla",
+      "apagada": false,
+      "filmes": [
+        {
+          "tmdb_id": 862,
+          "ordem": 1
+        },
+        {
+          "tmdb_id": 354912,
+          "ordem": 2
+        },
+        {
+          "tmdb_id": 8587,
+          "ordem": 3
+        },
+        {
+          "tmdb_id": 420818,
+          "ordem": 4
+        },
+        {
+          "tmdb_id": 105,
+          "ordem": 5
+        },
+        {
+          "tmdb_id": 329,
+          "ordem": 6
+        }
+      ]
+    }
+  ],
+  "notas": [
+    {
+      "utilizador": "ana",
+      "tmdb_id": 27205,
+      "estrelas": 9,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "ana",
+      "tmdb_id": 603,
+      "estrelas": 8,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "ana",
+      "tmdb_id": 157336,
+      "estrelas": 10,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "ana",
+      "tmdb_id": 13,
+      "estrelas": 7,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "ana",
+      "tmdb_id": 8587,
+      "estrelas": 9,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "ana",
+      "tmdb_id": 1124,
+      "estrelas": 8,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "ana",
+      "tmdb_id": 438631,
+      "estrelas": 6,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "bruno",
+      "tmdb_id": 27205,
+      "estrelas": 7,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "bruno",
+      "tmdb_id": 238,
+      "estrelas": 10,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "bruno",
+      "tmdb_id": 155,
+      "estrelas": 9,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "bruno",
+      "tmdb_id": 680,
+      "estrelas": 9,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "bruno",
+      "tmdb_id": 76341,
+      "estrelas": 8,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "bruno",
+      "tmdb_id": 841,
+      "estrelas": 4,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "bruno",
+      "tmdb_id": 329865,
+      "estrelas": 7,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "carla",
+      "tmdb_id": 496243,
+      "estrelas": 10,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "carla",
+      "tmdb_id": 244786,
+      "estrelas": 10,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "carla",
+      "tmdb_id": 313369,
+      "estrelas": 8,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "carla",
+      "tmdb_id": 194,
+      "estrelas": 9,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "carla",
+      "tmdb_id": 862,
+      "estrelas": 8,
+      "data": "2026-09-01"
+    },
+    {
+      "utilizador": "carla",
+      "tmdb_id": 27205,
+      "estrelas": 6,
+      "data": "2026-09-01"
+    }
+  ]
+}
