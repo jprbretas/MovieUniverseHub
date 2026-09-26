@@ -83,6 +83,8 @@ sobe o servidor com o debugger e abre o navegador.
 | POST | `/api/utilizadores/{id}/playlists` | cria uma playlist |
 | PUT | `/api/utilizadores/{id}/notas/{tmdb_id}` | dá ou altera a nota (1 a 10) do utilizador ao filme |
 | DELETE | `/api/utilizadores/{id}/notas/{tmdb_id}` | retira a nota |
+| GET | `/api/playlists` | todas as playlists (sem as apagadas) |
+| GET | `/api/playlists/comparar?a={id}&b={id}` | compara duas playlists (rating, filmes em comum...) |
 | GET | `/api/playlists/{id}` | playlist com os dados de cada filme |
 | DELETE | `/api/playlists/{id}` | apaga a playlist (fica marcada como apagada) |
 | PUT | `/api/playlists/{id}/filmes/{tmdb_id}` | adiciona o filme à playlist (repetir não duplica) |
@@ -109,6 +111,29 @@ aplicação, pesando o número de votos de cada lado (média bayesiana com 100 v
 "imaginários" de nota 6,5). A ficha do filme mostra-a ao lado da nota da TMDB, com o número de
 votos em que se baseia e uma explicação. A regra e a sua justificação estão no `DECISIONS.md`,
 secção 4, e o código em `src/movieuniverse/nota_combinada.py`.
+
+## Comparar playlists
+
+No menu **Comparar** (ou no botão "Comparar com…" de uma playlist) escolhem-se duas playlists.
+A que tiver a maior média de nota combinada dos seus filmes tem o melhor rating. Também se mostram
+o número de filmes, o melhor filme de cada uma, os filmes em comum e os que só estão numa delas.
+Regras no `DECISIONS.md`, secção 7.
+
+## Segurança
+
+- **Entradas validadas em duas camadas.** A API recusa com `422` notas fora de 1 a 10 ou que não
+  sejam números inteiros (por exemplo, uma nota 20 enviada diretamente à API), e a base de dados
+  tem um `CHECK` que as recusa mesmo que o código da aplicação fosse contornado.
+- **SQL injection.** Todas as consultas passam pelo SQLAlchemy com parâmetros, por isso um texto
+  como `ana'; DROP TABLE notas; --` é guardado como texto e nunca executado.
+- **XSS.** O frontend escapa todo o texto vindo da API antes de o pôr na página (`esc()` em
+  `static/js/util.js`).
+- **Token da TMDB.** Fica só no `.env` (fora do Git) e nunca é devolvido pela API (`/api/health`
+  diz apenas se está configurado).
+- **Sem palavra-passe.** Os utilizadores identificam-se só pelo nome, como o enunciado permite,
+  por isso qualquer pessoa com acesso à aplicação pode agir como outro utilizador (ver `DECISIONS.md`, secção 2).
+
+Os testes de `tests/test_seguranca.py` reproduzem estas tentativas.
 
 ## Cache das respostas da TMDB
 
@@ -141,6 +166,7 @@ MovieUniverseHub/
 │   ├── servicos.py        # regras de negócio de utilizadores, playlists e notas
 │   ├── importar.py        # importação do seed_playlists.json
 │   ├── nota_combinada.py  # regra da nota combinada (função pura)
+│   ├── comparacao.py      # comparação de duas playlists (função pura)
 │   ├── esquemas.py        # formato do JSON de entrada e saída da API (DTOs)
 │   ├── dependencias.py    # injeção de dependências (sessão, cliente TMDB, catálogo)
 │   ├── config.py          # leitura do .env
