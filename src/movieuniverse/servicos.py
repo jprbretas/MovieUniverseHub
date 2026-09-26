@@ -7,12 +7,18 @@ As rotas (rotas/*.py) só tratam de HTTP; tudo o que é regra ("uma nota por uti
 por filme", "apagar só marca como apagada", "adicionar duas vezes não duplica") está aqui.
 Isto também torna as regras fáceis de reutilizar, por exemplo na importação do seed.
 """
+from typing import TYPE_CHECKING
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from movieuniverse.comparacao import ComparacaoPlaylists, FilmeAvaliado, comparar_playlists
 from movieuniverse.entidades import Nota, Playlist, PlaylistFilme, Utilizador, agora
 from movieuniverse.nota_combinada import NotaCombinada, calcular_nota_combinada
-from movieuniverse.tmdb import FilmeResumo
+from movieuniverse.tmdb import ErroTMDB, FilmeResumo
+
+if TYPE_CHECKING:  # só para os type hints; evita um import circular em tempo de execução
+    from movieuniverse.catalogo import Catalogo
 
 
 class NaoEncontrado(Exception):
@@ -55,6 +61,17 @@ def playlists_do_utilizador(sessao: Session, utilizador_id: int) -> list[Playlis
         select(Playlist)
         .where(Playlist.utilizador_id == utilizador_id, Playlist.apagada.is_(False))
         .order_by(Playlist.criada_em, Playlist.id)
+    )
+    return list(sessao.scalars(consulta))
+
+
+def listar_playlists(sessao: Session) -> list[Playlist]:
+    """Todas as playlists que não estão apagadas, de todos os utilizadores (para comparar)."""
+    consulta = (
+        select(Playlist)
+        .join(Playlist.utilizador)
+        .where(Playlist.apagada.is_(False))
+        .order_by(Utilizador.nome, Playlist.nome)
     )
     return list(sessao.scalars(consulta))
 
@@ -141,3 +158,36 @@ def nota_combinada_do_filme(sessao: Session, filme: FilmeResumo) -> NotaCombinad
     notas = notas_do_filme(sessao, filme.tmdb_id)
     media_app = sum(n.estrelas for n in notas) / len(notas) if notas else None
     return calcular_nota_combinada(filme.media_votos, filme.num_votos, media_app, len(notas))
+
+
+def filmes_avaliados(sessao: Session, catalogo: "Catalogo", playlist: Playlist) -> list[FilmeAvaliado]:
+    """Os filmes da playlist, cada um com a sua nota combinada (dados da cache ou da TMDB).
+
+    Um filme que a TMDB não consegue devolver (e que não está na cache) entra "sem nota",
+    em vez de impedir a comparação toda.
+    """
+    avaliados = []
+    for item in playlist.filmes:
+        try:
+            filme = catalogo.detalhe(item.tmdb_id)
+        except ErroTMDB:
+            avaliados.append(FilmeAvaliado(
+                tmdb_id=item.tmdb_id, titulo=f"Filme #{item.tmdb_id} (indisponível)",
+                nota_combinada=calcular_nota_combinada(0, 0, None, 0),
+            ))
+            continue
+        avaliados.append(FilmeAvaliado(
+            tmdb_id=filme.tmdb_id, titulo=filme.titulo, ano=filme.ano, poster_url=filme.poster_url,
+            nota_combinada=nota_combinada_do_filme(sessao, filme),
+        ))
+    return avaliados
+
+
+def comparar(sessao: Session, catalogo: "Catalogo", playlist_a_id: int, playlist_b_id: int) -> ComparacaoPlaylists:
+    """Vai buscar as duas playlists e os seus filmes e entrega a comparação à função pura."""
+    playlist_a = obter_playlist(sessao, playlist_a_id)
+    playlist_b = obter_playlist(sessao, playlist_b_id)
+    return comparar_playlists(
+        (playlist_a.id, playlist_a.nome, playlist_a.utilizador.nome, filmes_avaliados(sessao, catalogo, playlist_a)),
+        (playlist_b.id, playlist_b.nome, playlist_b.utilizador.nome, filmes_avaliados(sessao, catalogo, playlist_b)),
+    )

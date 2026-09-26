@@ -1,9 +1,11 @@
-"""Rotas de uma playlist: ver com os filmes, apagar, e adicionar/remover filmes (a ★)."""
+"""Rotas das playlists: listar, comparar duas, ver uma com os filmes, apagar, e
+adicionar/remover filmes (a ★)."""
 from typing import Annotated
 
-from fastapi import APIRouter, Path, status
+from fastapi import APIRouter, HTTPException, Path, Query, status
 
 from movieuniverse import servicos
+from movieuniverse.comparacao import ComparacaoPlaylists
 from movieuniverse.dependencias import CatalogoDep, SessaoDep
 from movieuniverse.esquemas import FilmeNaPlaylist, PlaylistDetalhe, PlaylistResumo, em_utc
 from movieuniverse.tmdb import ErroTMDB
@@ -13,6 +15,28 @@ router = APIRouter(prefix="/api/playlists", tags=["playlists"])
 PlaylistId = Annotated[int, Path(gt=0)]
 TmdbId = Annotated[int, Path(gt=0, description="Id do filme na TMDB")]
 NAO_ENCONTRADA = {404: {"description": "A playlist (ou o filme) não existe."}}
+
+
+@router.get("")
+def listar_playlists(sessao: SessaoDep) -> list[PlaylistResumo]:
+    """Todas as playlists (sem as apagadas), de todos os utilizadores."""
+    return [PlaylistResumo.de(p) for p in servicos.listar_playlists(sessao)]
+
+
+# ATENÇÃO À ORDEM: esta rota tem de vir antes de "/{playlist_id}". O FastAPI experimenta as
+# rotas pela ordem em que são registadas, e "comparar" seria lido como um playlist_id.
+@router.get("/comparar", responses=NAO_ENCONTRADA)
+def comparar_playlists(
+    a: Annotated[int, Query(gt=0, description="Id da 1.ª playlist")],
+    b: Annotated[int, Query(gt=0, description="Id da 2.ª playlist")],
+    sessao: SessaoDep,
+    catalogo: CatalogoDep,
+) -> ComparacaoPlaylists:
+    """Compara duas playlists: qual tem o melhor rating (média das notas combinadas dos filmes),
+    o número de filmes, o melhor filme de cada uma, os filmes em comum e os que só estão numa."""
+    if a == b:
+        raise HTTPException(status_code=422, detail="Escolhe duas playlists diferentes para comparar.")
+    return servicos.comparar(sessao, catalogo, a, b)
 
 
 @router.get("/{playlist_id}", responses=NAO_ENCONTRADA)

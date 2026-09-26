@@ -285,6 +285,48 @@ button:hover, .botao:hover { filter: brightness(1.15); }
 .cabecalho-playlist { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
 .cabecalho-playlist .titulo-ecra { margin: 0; }
 
+.acoes-playlist { display: flex; gap: 0.5rem; }
+
+/* --- Comparação de playlists ---------------------------------------------------- */
+.form-comparar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; }
+.form-comparar select {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    background: var(--superficie);
+    color: var(--texto);
+}
+.versus { color: var(--texto-suave); font-weight: 700; }
+.explicacao-comparacao { font-size: 1.05rem; }
+.comparacao { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem; }
+.lado {
+    position: relative;
+    padding: 1.2rem;
+    border: 1px solid var(--borda);
+    border-radius: var(--raio);
+    background: var(--superficie);
+}
+.lado.vencedora { border-color: var(--ciano); box-shadow: 0 0 0 1px var(--ciano); }
+.lado h2 { margin: 0 0 0.2rem; font-size: 1.2rem; }
+.lado h2 a { color: var(--texto); }
+.lado h3 { margin: 1.2rem 0 0.4rem; font-size: 0.85rem; color: var(--texto-suave); text-transform: uppercase; }
+.lado .nota { margin-top: 0.8rem; background: var(--superficie-alta); }
+.selo {
+    position: absolute;
+    top: -0.7rem;
+    right: 1rem;
+    padding: 0.1rem 0.6rem;
+    border-radius: 999px;
+    background: var(--ciano);
+    color: var(--fundo);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+.lista-filmes { margin: 0; padding-left: 1.1rem; }
+.lista-filmes li { margin: 0.2rem 0; }
+
 /* --- A minha nota ------------------------------------------------------------- */
 .a-minha-nota { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; }
 .botoes-nota { display: flex; flex-wrap: wrap; gap: 0.3rem; }
@@ -316,6 +358,8 @@ button:hover, .botao:hover { filter: brightness(1.15); }
     .form-entrar input { flex: 1; width: auto; }
     .menu { margin-left: auto; }
     .ficha { grid-template-columns: 1fr; }
+    .comparacao { grid-template-columns: 1fr; }
+    .cabecalho-playlist { flex-direction: column; align-items: flex-start; }
     .poster-grande { max-width: 260px; }
     .grelha { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
 }

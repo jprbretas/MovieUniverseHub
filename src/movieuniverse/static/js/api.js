@@ -47,6 +47,8 @@ export const api = {
         pedirJSON(`/api/utilizadores/${utilizadorId}/notas/${tmdbId}`, { method: "DELETE" }),
 
     // Playlists
+    todasAsPlaylists: () => pedirJSON("/api/playlists"),
+    comparar: (a, b) => pedirJSON(`/api/playlists/comparar?${new URLSearchParams({ a, b })}`),
     playlist: (playlistId) => pedirJSON(`/api/playlists/${playlistId}`),
     apagarPlaylist: (playlistId) => pedirJSON(`/api/playlists/${playlistId}`, { method: "DELETE" }),
     adicionarFilme: (playlistId, tmdbId) =>
