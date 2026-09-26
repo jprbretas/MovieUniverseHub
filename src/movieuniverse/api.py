@@ -39,7 +39,7 @@ async def ciclo_de_vida(app: FastAPI):
 app = FastAPI(
     title="MovieUniverse Hub",
     description="Pesquisar filmes (API TMDB), criar playlists e dar notas.",
-    version="0.1.0",
+    version="1.0.0",
     lifespan=ciclo_de_vida,
 )
 

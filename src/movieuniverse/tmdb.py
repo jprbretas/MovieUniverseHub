@@ -116,7 +116,7 @@ class PaginaPesquisa(ModeloTMDB):
 
 
 # ---------------------------------------------------------------------------
-# Erros: cada problema tem a sua exceção, para a camada da API (Passo 3) poder
+# Erros: cada problema tem a sua exceção, para a camada da API (api.py) poder
 # responder com o código HTTP certo (ex.: FilmeNaoEncontrado -> 404).
 # ≈ classes que herdam de Exception em C#.
 # ---------------------------------------------------------------------------

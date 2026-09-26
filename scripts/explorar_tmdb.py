@@ -1,4 +1,4 @@
-"""Script de exploração da API da TMDB (Passo 1, parte 1).
+"""Script de exploração da API da TMDB (usado no início do projeto).
 
 Faz as duas chamadas de que a aplicação vai precisar e mostra o resultado:
   1. GET /search/movie?query=...  -> lista de filmes que correspondem ao título

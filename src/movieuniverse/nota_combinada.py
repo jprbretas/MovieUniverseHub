@@ -2,7 +2,7 @@
 
 Função PURA: recebe médias e números de votos e devolve a nota e uma explicação.
 Não depende da interface, da base de dados nem da rede, por isso é fácil de testar e de
-reutilizar (a comparação de playlists e o jogo usam esta mesma função).
+reutilizar (a ficha do filme e a comparação de playlists usam esta mesma função).
 
 A regra (ver DECISIONS.md, secção "Nota combinada") é uma MÉDIA BAYESIANA:
 
