@@ -84,16 +84,22 @@ def cliente(tmdb_falsa: TMDBFalsa):
 
 
 @pytest.fixture
-def sessao():
-    """Uma base de dados SQLite nova, EM MEMÓRIA, para cada teste (não toca no ficheiro real).
+def engine_da_sessao():
+    """O engine de uma base de dados SQLite nova, EM MEMÓRIA ("sqlite://" sem caminho)."""
+    engine = criar_engine("sqlite://")
+    criar_tabelas(engine)
+    yield engine
+    engine.dispose()
+
+
+@pytest.fixture
+def sessao(engine_da_sessao):
+    """Uma sessão nessa base de dados em memória, nova para cada teste (não toca no ficheiro real).
 
     ≈ usar o provider InMemory/SQLite in-memory do EF Core nos testes.
     """
-    engine = criar_engine("sqlite://")  # "sqlite://" sem caminho = base de dados em memória
-    criar_tabelas(engine)
-    with Session(engine) as s:
+    with Session(engine_da_sessao) as s:
         yield s
-    engine.dispose()
 
 
 @pytest.fixture
