@@ -5,6 +5,7 @@
 //   #/pesquisa?titulo=Dune      resultados da pesquisa
 //   #/filme/603                 ficha do filme (com as notas)
 //   #/playlist/4                uma playlist
+//   #/comparar?a=1&b=2          comparação de duas playlists
 //   #/sobre                     ecrã "Sobre"
 // Quando o # muda, o navegador dispara o evento "hashchange" e desenhamos o ecrã certo
 // dentro do <main id="conteudo">. Os botões Voltar/Avançar do navegador funcionam sozinhos.
@@ -248,10 +249,94 @@ async function ecraPlaylist(playlistId, ehAtual) {
                 <p class="card-info">de ${esc(playlist.dono)} · ${playlist.filmes.length}
                     ${playlist.filmes.length === 1 ? "filme" : "filmes"}</p>
             </div>
-            ${souDono ? `<button type="button" class="botao-perigo" data-acao="apagar-playlist">Apagar playlist</button>` : ""}
+            <div class="acoes-playlist">
+                <a class="botao" href="#/comparar?a=${playlist.id}">Comparar com…</a>
+                ${souDono ? `<button type="button" class="botao-perigo" data-acao="apagar-playlist">Apagar playlist</button>` : ""}
+            </div>
         </div>
         ${cards ? `<div class="grelha">${cards}</div>`
                 : `<p class="estado">Esta playlist ainda não tem filmes. Pesquisa um filme e usa a ☆ para o adicionar.</p>`}`;
+}
+
+async function ecraComparar(params, ehAtual) {
+    const todas = await api.todasAsPlaylists();
+    if (!ehAtual()) return;
+
+    if (todas.length < 2) {
+        return mostrarMensagem("São precisas pelo menos duas playlists para comparar.");
+    }
+
+    // Pré-seleção: o que vem no endereço; senão, a 1.ª playlist minha e a 1.ª de outra pessoa.
+    const minhas = sessao.utilizador ? todas.filter((p) => mesmoNome(p.dono, sessao.utilizador.nome)) : [];
+    const idA = Number(params.get("a")) || (minhas[0] ?? todas[0]).id;
+    const idB = Number(params.get("b")) || (todas.find((p) => p.id !== idA) ?? todas[1]).id;
+
+    const opcoes = (selecionada) => todas.map((p) => `
+        <option value="${p.id}" ${p.id === selecionada ? "selected" : ""}>
+            ${esc(p.nome)} (de ${esc(p.dono)}, ${p.tmdb_ids.length} filmes)
+        </option>`).join("");
+
+    conteudo.innerHTML = `
+        <h1 class="titulo-ecra">Comparar playlists</h1>
+        <form id="form-comparar" class="form-comparar">
+            <select name="a" aria-label="Primeira playlist">${opcoes(idA)}</select>
+            <span class="versus">vs</span>
+            <select name="b" aria-label="Segunda playlist">${opcoes(idB)}</select>
+            <button type="submit">Comparar</button>
+        </form>
+        <div id="resultado-comparacao"></div>`;
+
+    // Só compara quando as duas vêm no endereço (depois de clicar em "Comparar").
+    if (!params.get("a") || !params.get("b")) return;
+    if (idA === idB) {
+        document.getElementById("resultado-comparacao").innerHTML =
+            `<p class="estado erro">Escolhe duas playlists diferentes.</p>`;
+        return;
+    }
+
+    const resultadoDiv = document.getElementById("resultado-comparacao");
+    resultadoDiv.innerHTML = `<p class="estado">A comparar… (a primeira vez pode demorar, porque os filmes vêm da TMDB)</p>`;
+    const comparacao = await api.comparar(idA, idB);
+    if (!ehAtual()) return;
+    resultadoDiv.innerHTML = htmlComparacao(comparacao);
+}
+
+function htmlListaFilmes(filmes, vazio) {
+    if (!filmes.length) return `<p class="card-info">${vazio}</p>`;
+    return `<ul class="lista-filmes">${filmes.map((f) => `
+        <li><a href="#/filme/${f.tmdb_id}">${esc(f.titulo)}</a>${f.ano ? ` (${f.ano})` : ""}
+            <span class="card-info">· ${esc(f.nota_combinada.texto)}</span></li>`).join("")}</ul>`;
+}
+
+function htmlLado(lado, venceu) {
+    const semNota = lado.num_filmes - lado.num_filmes_com_nota;
+    const melhor = lado.melhor_filme;
+    return `
+        <section class="lado ${venceu ? "vencedora" : ""}">
+            ${venceu ? `<span class="selo">Melhor rating</span>` : ""}
+            <h2><a href="#/playlist/${lado.playlist_id}">${esc(lado.nome)}</a></h2>
+            <p class="card-info">de ${esc(lado.dono)} · ${lado.num_filmes} ${lado.num_filmes === 1 ? "filme" : "filmes"}</p>
+            <div class="nota">
+                <span class="nota-rotulo">Média da nota combinada</span>
+                <span class="nota-valor">${lado.media === null ? "sem informação" : formatarMedia(lado.media, 2)}</span>
+            </div>
+            ${semNota ? `<p class="card-info">${semNota} filme(s) sem nota ficaram de fora da média.</p>` : ""}
+            <h3>Melhor filme</h3>
+            ${melhor ? htmlListaFilmes([melhor], "") : `<p class="card-info">—</p>`}
+            <h3>Só nesta playlist</h3>
+            ${htmlListaFilmes(lado.so_nesta, "Nenhum: todos os filmes estão também na outra.")}
+        </section>`;
+}
+
+function htmlComparacao(c) {
+    return `
+        <p class="explicacao-comparacao">${esc(c.explicacao)}</p>
+        <div class="comparacao">
+            ${htmlLado(c.a, c.vencedora === "a")}
+            ${htmlLado(c.b, c.vencedora === "b")}
+        </div>
+        <h2>Filmes em comum (${c.em_comum.length})</h2>
+        ${htmlListaFilmes(c.em_comum, "Nenhum filme em comum.")}`;
 }
 
 async function ecraSobre(ehAtual) {
@@ -304,6 +389,8 @@ async function navegar() {
             await ecraFilme(Number(caminho.split("/")[2]), ehAtual);
         } else if (/^\/playlist\/\d+$/.test(caminho)) {
             await ecraPlaylist(Number(caminho.split("/")[2]), ehAtual);
+        } else if (caminho === "/comparar") {
+            await ecraComparar(new URLSearchParams(query), ehAtual);
         } else if (caminho === "/sobre") {
             await ecraSobre(ehAtual);
         } else {
@@ -333,6 +420,9 @@ document.addEventListener("submit", async (evento) => {
         } catch (erro) {
             alert(erro.message);
         }
+    } else if (form.id === "form-comparar") {
+        evento.preventDefault();
+        location.hash = `#/comparar?${new URLSearchParams({ a: form.a.value, b: form.b.value })}`;
     } else if (form.id === "form-nova-playlist") {
         evento.preventDefault();
         try {

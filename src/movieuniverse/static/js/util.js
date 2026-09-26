@@ -17,9 +17,9 @@ export function formatarDuracao(minutos) {
     return horas ? `${horas} h ${String(resto).padStart(2, "0")} min` : `${resto} min`;
 }
 
-/** 7.666 -> "7,7" (formato português, uma casa decimal). */
-export function formatarMedia(valor) {
-    return valor.toLocaleString("pt-PT", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+/** 7.666 -> "7,7" (formato português; uma casa decimal por omissão). */
+export function formatarMedia(valor, casas = 1) {
+    return valor.toLocaleString("pt-PT", { minimumFractionDigits: casas, maximumFractionDigits: casas });
 }
 
 export function formatarData(textoIso) {

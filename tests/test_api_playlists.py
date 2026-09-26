@@ -136,3 +136,39 @@ def test_nota_fora_de_1_a_10_e_recusada(api_com_filmes, estrelas):
 
 def test_utilizador_inexistente_da_404(api):
     assert api.get("/api/utilizadores/999/playlists").status_code == 404
+
+
+# --- Comparação ------------------------------------------------------------------
+
+def test_listar_playlists_mostra_as_de_todos_menos_as_apagadas(api):
+    criar_playlist(api, entrar(api, "ana"), "Da ana")
+    apagada = criar_playlist(api, entrar(api, "bruno"), "Do bruno, apagada")
+    api.delete(f"/api/playlists/{apagada}")
+
+    nomes = [p["nome"] for p in api.get("/api/playlists").json()]
+
+    assert nomes == ["Da ana"]
+
+
+def test_comparar_duas_playlists_pela_api(api_com_filmes):
+    api = api_com_filmes
+    ana = entrar(api)
+    a = criar_playlist(api, ana, "A")
+    b = criar_playlist(api, ana, "B")
+    for playlist, filmes in ((a, [603, 27205]), (b, [603])):
+        for tmdb_id in filmes:
+            api.put(f"/api/playlists/{playlist}/filmes/{tmdb_id}")
+
+    resultado = api.get("/api/playlists/comparar", params={"a": a, "b": b}).json()
+
+    assert resultado["vencedora"] in ("a", "b", "empate")
+    assert resultado["a"]["num_filmes"] == 2 and resultado["b"]["num_filmes"] == 1
+    assert [f["tmdb_id"] for f in resultado["em_comum"]] == [603]
+    assert [f["tmdb_id"] for f in resultado["a"]["so_nesta"]] == [27205]
+
+
+def test_comparar_a_mesma_playlist_e_recusado(api):
+    playlist = criar_playlist(api, entrar(api))
+
+    assert api.get("/api/playlists/comparar", params={"a": playlist, "b": playlist}).status_code == 422
+

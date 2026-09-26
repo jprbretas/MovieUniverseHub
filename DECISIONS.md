@@ -104,3 +104,22 @@ retirado) sobrevivem a uma nova importação.
 Outras escolhas: as notas mantêm a data do ficheiro; a importação não contacta a TMDB (guarda
 só os `tmdb_id`, e os dados dos filmes chegam quando forem vistos); tudo corre numa transação,
 por isso um ficheiro com formato errado não deixa nada a meio.
+
+## 7. Comparação de playlists
+
+O enunciado pede que a comparação indique a playlist com o melhor rating, "com base na média do
+rating individual de cada filme". As regras (código em `src/movieuniverse/comparacao.py`, uma
+função pura como a da nota combinada):
+
+- **O rating de cada filme é a sua nota combinada**, e não a nota da TMDB. Assim, um filme com
+  8,9 e 12 votos não puxa uma playlist para cima, que é o mesmo problema que a nota combinada
+  resolve.
+- **O rating da playlist é a média das notas combinadas dos seus filmes.** Filmes sem nota
+  combinada (sem votos nenhuns, ou indisponíveis na TMDB) ficam de fora da média, mas são
+  contados e o resultado diz quantos foram.
+- **Ganha a média mais alta.** Médias iguais até à 2.ª casa decimal contam como empate. Se uma das
+  playlists não tiver nenhum filme com nota, não há vencedora ("informação insuficiente").
+- Só se comparam playlists ativas (as apagadas dão 404) e não se compara uma playlist com ela própria.
+- **Outras comparações mostradas:** o número de filmes de cada uma, o melhor filme de cada uma,
+  os filmes em comum e os filmes que só estão numa delas.
+
