@@ -17,7 +17,7 @@ from movieuniverse.entidades import Nota, Playlist, PlaylistFilme, Utilizador, a
 from movieuniverse.nota_combinada import NotaCombinada, calcular_nota_combinada
 from movieuniverse.tmdb import ErroTMDB, FilmeResumo
 
-if TYPE_CHECKING:  # só para os type hints; evita um import circular em tempo de execução
+if TYPE_CHECKING:  # só para os type hints: a correr, basta receber um objeto com .detalhe()
     from movieuniverse.catalogo import Catalogo
 
 

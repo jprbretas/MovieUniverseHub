@@ -56,3 +56,14 @@ Modelo para cada entrada:
   (`INSERT ... ON CONFLICT DO UPDATE`), que é atómico. Acrescentei um teste que reproduz a
   situação com duas sessões e que falhava com o código antigo.
 
+
+## 5. O README descrevia um ficheiro que não estava no repositório
+- **Contexto:** revisão final da documentação, antes da entrega.
+- **Sugestão da IA:** o README dizia que se podia arrancar a aplicação com **F5** no VS Code,
+  através de uma configuração em `.vscode/launch.json`.
+- **Problema:** esse ficheiro ficou como passo opcional e nunca chegou ao repositório. Quem
+  clonasse o projeto numa máquina limpa não o teria, e a instrução não funcionava. Um comentário
+  do `config.py` apontava para o mesmo ficheiro.
+- **O que fiz em vez disso:** retirei a instrução do README e corrigi o comentário. O único
+  arranque documentado é `python -m movieuniverse`, e segui o README do início ao fim numa
+  pasta limpa para confirmar que as instruções funcionam.

@@ -55,7 +55,10 @@ class SeedNota(BaseModel):
 
 
 class SeedFicheiro(BaseModel):
+    """O ficheiro inteiro. A exportação (exportar.py) usa este mesmo modelo."""
+
     versao: str
+    descricao: str = ""
     utilizadores: list[SeedUtilizador]
     playlists: list[SeedPlaylist]
     notas: list[SeedNota]

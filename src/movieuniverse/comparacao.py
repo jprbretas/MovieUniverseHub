@@ -1,4 +1,4 @@
-"""Comparação de duas playlists (Passo 8).
+"""Comparação de duas playlists.
 
 Função PURA, como a nota combinada: recebe os filmes de cada playlist já com a nota
 combinada calculada e devolve o resultado. Não depende da base de dados nem da rede.

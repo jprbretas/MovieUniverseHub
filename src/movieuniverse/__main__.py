@@ -2,6 +2,7 @@
 
     python -m movieuniverse                  arranca a aplicação (≈ dotnet run)
     python -m movieuniverse importar-seed    importa dados/seed_playlists.json
+    python -m movieuniverse exportar         exporta os dados para dados/exportacao.json
 
 Os "subcomandos" funcionam como os do dotnet (dotnet run, dotnet ef ...).
 """
@@ -52,7 +53,25 @@ def importar(ficheiro: Path) -> int:
     return 0
 
 
+def exportar(ficheiro: Path) -> int:
+    from movieuniverse.db import SessaoLocal, criar_tabelas
+    from movieuniverse.exportar import exportar_para_ficheiro
+
+    criar_tabelas()
+    with SessaoLocal() as sessao:
+        dados = exportar_para_ficheiro(sessao, ficheiro)
+
+    apagadas = sum(p.apagada for p in dados.playlists)
+    print(f"Exportação concluída: {ficheiro}")
+    print(
+        f"  {len(dados.utilizadores)} utilizadores, {len(dados.playlists)} playlists "
+        f"({apagadas} marcadas como apagadas), {len(dados.notas)} notas"
+    )
+    return 0
+
+
 def main(argumentos: list[str] | None = None) -> int:
+    from movieuniverse.exportar import FICHEIRO_EXPORTACAO
     from movieuniverse.importar import FICHEIRO_SEED
 
     parser = argparse.ArgumentParser(prog="python -m movieuniverse", description="MovieUniverse Hub")
@@ -62,10 +81,16 @@ def main(argumentos: list[str] | None = None) -> int:
     importar_cmd.add_argument(
         "--ficheiro", type=Path, default=FICHEIRO_SEED, help="caminho do JSON (por omissão: dados/seed_playlists.json)"
     )
+    exportar_cmd = comandos.add_parser("exportar", help="exporta utilizadores, playlists e notas para JSON")
+    exportar_cmd.add_argument(
+        "--ficheiro", type=Path, default=FICHEIRO_EXPORTACAO, help="onde gravar (por omissão: dados/exportacao.json)"
+    )
     args = parser.parse_args(argumentos)
 
     if args.comando == "importar-seed":
         return importar(args.ficheiro)
+    if args.comando == "exportar":
+        return exportar(args.ficheiro)
     arrancar_servidor()
     return 0
 

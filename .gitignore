@@ -16,8 +16,12 @@ dist/
 # Base de dados local (é criada pela aplicação)
 dados/*.db
 dados/*.db-journal
+# Exportações (python -m movieuniverse exportar): são dados dos utilizadores, não código
+dados/exportacao*.json
 
-# IDEs (do VS Code só partilhamos o launch.json, que dá o F5 / botão Run)
+# Pastas dos editores (VS Code, Visual Studio, JetBrains). Do VS Code só se partilharia
+# o launch.json (configuração do F5), se existir.
 .idea/
+.vs/
 .vscode/*
 !.vscode/launch.json

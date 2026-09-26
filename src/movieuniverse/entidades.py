@@ -46,8 +46,9 @@ class Playlist(Base):
     # "Apagar" só marca a playlist (soft delete), tal como no seed. Ela deixa de aparecer,
     # mas os dados não se perdem.
     apagada: Mapped[bool] = mapped_column(default=False)
-    # O id que a playlist tem no seed ("pl-01"...). Serve para a importação reconhecer o
-    # que já importou e não duplicar. `str | None` = coluna que aceita NULL.
+    # O id externo da playlist: o do seed ("pl-01"...) ou o que a exportação lhe deu
+    # ("app-..."). Serve para a importação reconhecer o que já importou e não duplicar.
+    # `str | None` = coluna que aceita NULL (playlists criadas na app, ainda não exportadas).
     id_seed: Mapped[str | None] = mapped_column(String(20), unique=True)
     criada_em: Mapped[datetime] = mapped_column(default=agora)
 
@@ -101,7 +102,7 @@ class FilmeCache(Base):
 
     tmdb_id: Mapped[int] = mapped_column(primary_key=True)
     # Cópia de alguns campos em colunas próprias, para podermos fazer consultas
-    # (ex.: o jogo vai querer só filmes com muitos votos) sem abrir o JSON.
+    # (ex.: procurar só filmes com muitos votos) sem abrir o JSON.
     titulo: Mapped[str] = mapped_column(String(300))
     media_votos: Mapped[float]
     num_votos: Mapped[int]

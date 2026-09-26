@@ -66,7 +66,7 @@ def criar_tabelas(engine_alvo: Engine = engine) -> None:
 def obter_sessao() -> Iterator[Session]:
     """Uma sessão por pedido HTTP (≈ DbContext com tempo de vida Scoped).
 
-    Vai ser usada no Passo 3 com o Depends() do FastAPI.
+    As rotas recebem-na através do Depends() do FastAPI (ver dependencias.py).
     """
     with SessaoLocal() as sessao:
         yield sessao
