@@ -15,6 +15,7 @@ from typing import Annotated
 from pydantic import BaseModel, Field, StringConstraints
 
 from movieuniverse.entidades import Nota, Playlist, Utilizador
+from movieuniverse.nota_combinada import NotaCombinada
 from movieuniverse.tmdb import FilmeResumo
 
 
@@ -111,9 +112,10 @@ class NotaSaida(BaseModel):
 
 
 class NotasDoFilme(BaseModel):
-    """Todas as notas que os utilizadores da aplicação deram a um filme."""
+    """As notas dos utilizadores da aplicação para um filme e a nota combinada com a TMDB."""
 
     tmdb_id: int
     num_notas: int
-    media: float | None = Field(description="Média das notas; null se ninguém deu nota")
+    media: float | None = Field(description="Média das notas dos utilizadores; null se ninguém deu nota")
     notas: list[NotaSaida]
+    nota_combinada: NotaCombinada

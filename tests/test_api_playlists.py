@@ -112,6 +112,19 @@ def test_media_das_notas_dos_utilizadores(api_com_filmes):
     assert notas["media"] == 8.0
 
 
+def test_notas_do_filme_trazem_a_nota_combinada(api_com_filmes, json_tmdb):
+    api = api_com_filmes
+    api.put(f"/api/utilizadores/{entrar(api)}/notas/603", json={"estrelas": 10})
+    votos_tmdb = json_tmdb("filme_603.json")["vote_count"]
+
+    combinada = api.get("/api/filmes/603/notas").json()["nota_combinada"]
+
+    assert combinada["num_votos"] == votos_tmdb + 1
+    assert combinada["votos_app"] == 1
+    assert 0 < combinada["valor"] <= 10
+    assert combinada["texto"] and combinada["explicacao"]
+
+
 @pytest.mark.parametrize("estrelas", [0, 11])
 def test_nota_fora_de_1_a_10_e_recusada(api_com_filmes, estrelas):
     ana = entrar(api_com_filmes)

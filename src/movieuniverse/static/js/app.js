@@ -196,17 +196,25 @@ function htmlNotas(notaTmdbTexto, notas) {
             </div>`;
     }
 
+    // A nota combinada vem calculada da API (função pura no backend: nota_combinada.py).
+    const combinada = notas.nota_combinada;
+
     return `
         <div class="notas">
             <div class="nota">
                 <span class="nota-rotulo">Nota TMDB</span>
                 <span class="nota-valor">${esc(notaTmdbTexto)}</span>
             </div>
+            <div class="nota nota-combinada">
+                <span class="nota-rotulo">Nota combinada</span>
+                <span class="nota-valor">${esc(combinada.texto)}</span>
+            </div>
             <div class="nota">
                 <span class="nota-rotulo">Utilizadores da app</span>
                 <span class="nota-valor">${textoUtilizadores}</span>
             </div>
         </div>
+        <p class="explicacao-nota">${esc(combinada.explicacao)}</p>
         ${aMinha}`;
 }
 

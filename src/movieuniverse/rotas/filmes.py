@@ -44,12 +44,18 @@ def detalhe_filme(
     return catalogo.detalhe(tmdb_id)
 
 
-@router.get("/{tmdb_id}/notas")
+@router.get(
+    "/{tmdb_id}/notas",
+    responses={404: {"description": "Não existe nenhum filme com esse id."}, **ERROS_TMDB},
+)
 def notas_do_filme(
     sessao: SessaoDep,
+    catalogo: CatalogoDep,
     tmdb_id: Annotated[int, Path(gt=0, description="Id do filme na TMDB")],
 ) -> NotasDoFilme:
-    """As notas que os utilizadores da aplicação deram a este filme, e a média delas."""
+    """As notas dos utilizadores da aplicação para o filme, a média delas e a nota combinada
+    (TMDB + utilizadores; a regra está no DECISIONS.md)."""
+    filme = catalogo.detalhe(tmdb_id)  # a média e os votos da TMDB (normalmente vêm da cache)
     notas = servicos.notas_do_filme(sessao, tmdb_id)
     media = round(sum(n.estrelas for n in notas) / len(notas), 2) if notas else None
     return NotasDoFilme(
@@ -57,4 +63,5 @@ def notas_do_filme(
         num_notas=len(notas),
         media=media,
         notas=[NotaSaida.de(n) for n in notas],
+        nota_combinada=servicos.nota_combinada_do_filme(sessao, filme),
     )

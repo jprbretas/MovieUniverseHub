@@ -206,6 +206,9 @@ button:hover, .botao:hover { filter: brightness(1.15); }
 }
 .nota-rotulo { font-size: 0.8rem; color: var(--texto-suave); text-transform: uppercase; letter-spacing: 0.05em; }
 .nota-valor { font-size: 1.3rem; font-weight: 700; color: var(--ciano); white-space: nowrap; }
+.nota-combinada { border: 1px solid var(--roxo); }
+.nota-combinada .nota-valor { color: var(--texto); }
+.explicacao-nota { margin-top: -0.5rem; font-size: 0.85rem; color: var(--texto-suave); max-width: 60ch; }
 
 .sobre { max-width: 720px; }
 

@@ -37,7 +37,47 @@ playlist e nota em cada pedido.
 
 ## 4. Nota combinada
 
-*(a definir no passo 7)*
+**Regra: média bayesiana.** Antes de olhar para os votos de um filme, assumimos que ele já tem
+**m = 100 votos "imaginários"** com uma **nota neutra C = 6,5**. Depois juntamos os votos reais,
+da TMDB e dos utilizadores da aplicação:
+
+```
+                 v × R  +  m × C
+nota combinada = ───────────────        v = votos reais (TMDB + aplicação)
+                     v  +  m            R = média ponderada dos votos reais
+```
+
+- Com **poucos votos**, os votos imaginários dominam e a nota fica perto de 6,5 ("ainda não
+  sabemos o suficiente"). Com **muitos votos**, quase não pesam e a nota fica perto da média real.
+- **Um voto de um utilizador da aplicação vale o mesmo que um voto da TMDB.** Assim, três
+  utilizadores não conseguem virar a tabela contra milhares de votos da TMDB, mas contam a
+  sério nos filmes pouco conhecidos.
+- **Sem votos nenhuns** (TMDB e aplicação), não há nota combinada: a ficha mostra
+  "informação insuficiente".
+- A nota fica sempre entre 0 e 10, porque é uma média ponderada de valores entre 0 e 10.
+
+**Os casos do enunciado** (provados em `tests/test_nota_combinada.py`):
+
+| Filme | Votos reais | Média real | Nota combinada |
+|---|---|---|---|
+| A: 8,9 com 12 votos na TMDB | 12 | 8,9 | 6,76 |
+| A + 3 utilizadores a dar 10 | 15 | 9,12 | 6,84 |
+| B: 8,4 com 30 000 votos na TMDB | 30 000 | 8,4 | 8,39 |
+
+B fica sempre acima de A.
+
+**Pergunta sobre o número de votos: a partir de quantos votos confiamos numa média?**
+A partir de cerca de **100**. As notas de um filme variam tipicamente ±1,8 pontos entre
+pessoas, e a margem de erro de uma média cai com a raiz do número de votos (1,8 / √n):
+com 12 votos é cerca de ±0,5 (pouco fiável), com 100 votos ±0,2 e com 300 votos ±0,1.
+Por isso m = 100: com 100 votos reais, a média real já pesa metade, e a partir daí pesa cada
+vez mais. Chegou-se a considerar m = 500 (inspirado no Top 250 do IMDb), mas isso castigava
+demasiado filmes com algumas centenas de votos, que já têm médias fiáveis (ver AI_LOG.md).
+
+**Onde está o código:** a função pura `calcular_nota_combinada()` em
+`src/movieuniverse/nota_combinada.py` recebe médias e números de votos e devolve a nota e uma
+explicação. Não depende da interface, da base de dados nem da rede. A comparação de
+playlists e o jogo usam esta mesma função.
 
 ## 5. Regras do jogo
 

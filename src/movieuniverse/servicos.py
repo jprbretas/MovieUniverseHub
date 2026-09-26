@@ -11,6 +11,8 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from movieuniverse.entidades import Nota, Playlist, PlaylistFilme, Utilizador, agora
+from movieuniverse.nota_combinada import NotaCombinada, calcular_nota_combinada
+from movieuniverse.tmdb import FilmeResumo
 
 
 class NaoEncontrado(Exception):
@@ -128,3 +130,14 @@ def remover_nota(sessao: Session, utilizador_id: int, tmdb_id: int) -> None:
 
 def notas_do_filme(sessao: Session, tmdb_id: int) -> list[Nota]:
     return list(sessao.scalars(select(Nota).where(Nota.tmdb_id == tmdb_id).order_by(Nota.data.desc())))
+
+
+def nota_combinada_do_filme(sessao: Session, filme: FilmeResumo) -> NotaCombinada:
+    """Junta a nota da TMDB (que vem no filme) às notas dos utilizadores guardadas na base.
+
+    O cálculo em si é feito pela função pura calcular_nota_combinada(); aqui só se vão
+    buscar os números.
+    """
+    notas = notas_do_filme(sessao, filme.tmdb_id)
+    media_app = sum(n.estrelas for n in notas) / len(notas) if notas else None
+    return calcular_nota_combinada(filme.media_votos, filme.num_votos, media_app, len(notas))
