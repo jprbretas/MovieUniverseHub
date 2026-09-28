@@ -14,6 +14,7 @@ from movieuniverse.config import Settings, get_settings
 
 URL_BASE = "https://api.themoviedb.org/3"
 URL_IMAGENS = "https://image.tmdb.org/t/p/w500"  # cartazes com 500 px de largura
+URL_FUNDOS = "https://image.tmdb.org/t/p/w1280"  # imagens de fundo (backdrops) do topo da ficha
 LINGUA_PADRAO = "pt-PT"
 LINGUA_ALTERNATIVA = "en-US"  # usada quando a sinopse em pt-PT vem vazia
 PAGINA_MAXIMA = 500           # a TMDB não devolve páginas acima da 500
@@ -84,6 +85,7 @@ class FilmeDetalhe(FilmeResumo):
     sinopse: str = Field(default="", validation_alias="overview")
     generos: list[Genero] = Field(default_factory=list, validation_alias="genres")
     duracao_min: int | None = Field(default=None, validation_alias="runtime")
+    backdrop_path: str | None = Field(default=None, validation_alias="backdrop_path")
 
     @field_validator("sinopse", mode="before")
     @classmethod
@@ -95,6 +97,11 @@ class FilmeDetalhe(FilmeResumo):
     def duracao_zero_e_desconhecida(cls, valor):
         """A TMDB usa 0 quando não sabe a duração; guardamos None ("desconhecida")."""
         return valor or None
+
+    @computed_field
+    @property
+    def fundo_url(self) -> str | None:
+        return f"{URL_FUNDOS}{self.backdrop_path}" if self.backdrop_path else None
 
 
 class PaginaPesquisa(ModeloTMDB):
