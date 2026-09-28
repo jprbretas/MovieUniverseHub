@@ -1,13 +1,4 @@
-"""Ligação à base de dados (SQLAlchemy + SQLite).
-
-Equivalente C#: a configuração do DbContext do Entity Framework
-(options.UseSqlite(...)) e o Database.EnsureCreated().
-
-Três peças:
-  - engine: sabe COMO ligar à base de dados (≈ a connection string + o provider).
-  - SessaoLocal: fábrica de sessões; cada sessão é uma "unidade de trabalho" (≈ um DbContext).
-  - Base: classe-mãe das tabelas (as entidades estão em entidades.py).
-"""
+"""Ligação à base de dados (SQLAlchemy + SQLite): o engine, a fábrica de sessões e a Base das tabelas."""
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -19,7 +10,7 @@ from movieuniverse.config import get_settings
 
 
 class Base(DeclarativeBase):
-    """Classe-mãe de todas as tabelas (≈ os DbSet<T> registados no DbContext)."""
+    """Classe-mãe de todas as tabelas (definidas em entidades.py)."""
 
 
 def criar_engine(url: str) -> Engine:
@@ -29,20 +20,16 @@ def criar_engine(url: str) -> Engine:
 
     opcoes: dict = {}
     if url.startswith("sqlite"):
-        # O FastAPI atende cada pedido numa thread do pool; o sqlite3 por omissão recusa
-        # ligações usadas noutra thread. Desligamos essa verificação (a sessão continua a
-        # ser uma por pedido, por isso é seguro).
+        # O FastAPI atende os pedidos em threads diferentes; cada sessão continua a ser de um só pedido.
         opcoes["connect_args"] = {"check_same_thread": False}
     if url in ("sqlite://", "sqlite:///:memory:"):
-        # Em memória, cada ligação nova seria uma base de dados VAZIA e diferente.
-        # O StaticPool reutiliza sempre a mesma ligação (usado nos testes).
+        # Em memória, cada ligação nova seria uma base vazia: o StaticPool reutiliza a mesma (testes).
         opcoes["poolclass"] = StaticPool
 
     engine = create_engine(url, **opcoes)
 
     if url.startswith("sqlite"):
-        # O SQLite IGNORA as chaves estrangeiras por omissão! Este "evento" corre a cada
-        # nova ligação e liga a verificação (≈ um interceptor de ligação no EF Core).
+        # O SQLite ignora as chaves estrangeiras por omissão: liga-as em cada nova ligação.
         @event.listens_for(engine, "connect")
         def ligar_chaves_estrangeiras(ligacao_sqlite, _registo):
             cursor = ligacao_sqlite.cursor()
@@ -57,16 +44,13 @@ SessaoLocal = sessionmaker(bind=engine)
 
 
 def criar_tabelas(engine_alvo: Engine = engine) -> None:
-    """Cria as tabelas que ainda não existem (≈ EnsureCreated; não apaga dados)."""
-    from movieuniverse import entidades  # noqa: F401  (importar regista as tabelas na Base)
+    """Cria as tabelas que ainda não existem (não altera nem apaga dados)."""
+    from movieuniverse import entidades  # noqa: F401  (o import regista as tabelas na Base)
 
     Base.metadata.create_all(engine_alvo)
 
 
 def obter_sessao() -> Iterator[Session]:
-    """Uma sessão por pedido HTTP (≈ DbContext com tempo de vida Scoped).
-
-    As rotas recebem-na através do Depends() do FastAPI (ver dependencias.py).
-    """
+    """Uma sessão por pedido HTTP, fechada no fim (usada com o Depends() do FastAPI)."""
     with SessaoLocal() as sessao:
         yield sessao

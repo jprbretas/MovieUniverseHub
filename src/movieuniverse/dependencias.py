@@ -1,15 +1,10 @@
-"""Dependências das rotas (injeção de dependências do FastAPI).
+"""Dependências injetadas nas rotas com Depends().
 
-Equivalente C#: o registo de serviços no Program.cs (builder.Services.AddScoped<...>())
-e a injeção no construtor dos controllers. No FastAPI, uma rota declara um parâmetro
-com `Depends(funcao)` e o FastAPI chama essa função para obter o objeto.
+    obter_sessao        -> uma sessão da base de dados por pedido
+    obter_cliente_tmdb  -> um único ClienteTMDB para a aplicação toda
+    obter_catalogo      -> o Catálogo, montado com os dois de cima
 
-    obter_sessao        -> uma sessão da base de dados por pedido   (≈ AddScoped<DbContext>)
-    obter_cliente_tmdb  -> um único ClienteTMDB para a app toda      (≈ AddSingleton / HttpClient)
-    obter_catalogo      -> Catálogo montado com os dois de cima      (≈ AddScoped<Catalogo>)
-
-Nos testes trocamos o obter_catalogo por um falso com `app.dependency_overrides`
-(≈ ConfigureTestServices no WebApplicationFactory).
+Os testes trocam-nas por versões falsas com `app.dependency_overrides`.
 """
 from functools import lru_cache
 from typing import Annotated
@@ -24,7 +19,7 @@ from movieuniverse.tmdb import ClienteTMDB
 
 @lru_cache
 def obter_cliente_tmdb() -> ClienteTMDB:
-    """Sempre a mesma instância: reaproveita as ligações HTTP entre pedidos."""
+    """Sempre a mesma instância, para reaproveitar as ligações HTTP entre pedidos."""
     return ClienteTMDB.da_config()
 
 
@@ -35,8 +30,6 @@ def obter_catalogo(
     return Catalogo(sessao, tmdb)
 
 
-# Atalhos para as rotas: `catalogo: CatalogoDep` em vez de repetir o Depends(...).
-# Dentro do mesmo pedido, o FastAPI reutiliza a mesma sessão em todo o lado
-# (a da rota e a do Catálogo), tal como um serviço Scoped em .NET.
+# Dentro do mesmo pedido, o FastAPI reutiliza a mesma sessão (a da rota e a do Catálogo).
 SessaoDep = Annotated[Session, Depends(obter_sessao)]
 CatalogoDep = Annotated[Catalogo, Depends(obter_catalogo)]

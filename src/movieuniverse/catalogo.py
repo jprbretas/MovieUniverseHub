@@ -1,21 +1,8 @@
 """Catálogo de filmes: a TMDB com uma cache na base de dados à frente.
 
-Fluxo de cada pedido:
-
-    pedido ──► está na cache e ainda é válido? ──sim──► devolve da cache (0 pedidos à TMDB)
-                          │ não
-                          ▼
-               pede à TMDB ──ok──► guarda na cache e devolve
-                          │ falhou (sem rede / 429)
-                          ▼
-               há uma cópia antiga? ──sim──► devolve a cópia antiga (melhor do que nada)
-                          │ não
-                          ▼
-                    lança o erro
-
-Equivalente C#: um serviço que "decora" o cliente HTTP com cache (padrão Decorator),
-como se faria com IMemoryCache/IDistributedCache à volta de um HttpClient tipado.
-O ClienteTMDB continua a não saber nada de base de dados; só o Catálogo sabe.
+Em cada pedido: se a cópia na cache tiver menos de 24 horas, usa-a sem ir à TMDB; senão,
+pede à TMDB e atualiza a cache. Se a TMDB falhar (sem rede ou 429), devolve a cópia antiga,
+se existir; se não existir, o erro segue para quem chamou.
 """
 from collections.abc import Callable
 from datetime import datetime, timedelta, timezone
@@ -32,11 +19,10 @@ from movieuniverse.tmdb import (
     TMDBIndisponivel,
 )
 
-# Quanto tempo uma resposta guardada é considerada atual. As notas e os votos da TMDB
-# mudam devagar; um dia é um bom equilíbrio entre dados frescos e poucos pedidos.
+# As notas e os votos da TMDB mudam devagar: um dia equilibra dados frescos e poucos pedidos.
 VALIDADE_CACHE = timedelta(hours=24)
 
-# Erros em que vale a pena usar uma cópia antiga: a TMDB está lá, mas agora não responde.
+# Erros em que vale a pena usar uma cópia antiga: a TMDB existe, mas agora não responde.
 ERROS_TEMPORARIOS = (TMDBIndisponivel, LimitePedidos)
 
 
@@ -52,14 +38,11 @@ class Catalogo:
         validade: timedelta = VALIDADE_CACHE,
         relogio: Callable[[], datetime] = agora_utc,
     ) -> None:
-        # `relogio` é uma função que devolve "agora". Nos testes passamos um relógio falso
-        # para simular que o tempo passou (≈ injetar o TimeProvider no .NET 8).
+        # `relogio` devolve "agora"; os testes passam um relógio falso para simular o tempo a passar.
         self.sessao = sessao
         self.tmdb = tmdb
         self.validade = validade
         self.relogio = relogio
-
-    # --- Detalhe de um filme ------------------------------------------------
 
     def detalhe(self, tmdb_id: int) -> FilmeDetalhe:
         registo = self.sessao.get(FilmeCache, tmdb_id)
@@ -71,7 +54,7 @@ class Catalogo:
         except ERROS_TEMPORARIOS:
             if registo:
                 return FilmeDetalhe.model_validate_json(registo.dados_json)
-            raise  # sem cópia antiga: o erro segue para quem chamou
+            raise
 
         self._guardar(
             FilmeCache,
@@ -80,19 +63,17 @@ class Catalogo:
                 "titulo": filme.titulo,
                 "media_votos": filme.media_votos,
                 "num_votos": filme.num_votos,
-                "dados_json": filme.model_dump_json(),  # objeto -> texto JSON
+                "dados_json": filme.model_dump_json(),
                 "atualizado_em": self.relogio(),
             },
         )
         return filme
 
-    # --- Pesquisa -------------------------------------------------------------
-
     def pesquisar(self, titulo: str, pagina: int = 1) -> PaginaPesquisa:
         if not titulo.strip():
             return self.tmdb.pesquisar(titulo, pagina)  # página vazia, sem pedido nem cache
 
-        # " Matrix " e "matrix" são a mesma pesquisa: normalizamos antes de montar a chave.
+        # " Matrix " e "matrix" são a mesma pesquisa.
         chave = f"{self.tmdb.lingua}|{titulo.strip().lower()}|{pagina}"
         registo = self.sessao.get(PesquisaCache, chave)
         if registo and self._ainda_valido(registo.atualizado_em):
@@ -112,15 +93,11 @@ class Catalogo:
         )
         return resultado
 
-    # --- Auxiliares -----------------------------------------------------------
-
     def _guardar(self, tabela, chave: dict, valores: dict) -> None:
-        """Grava na cache com um "upsert": INSERT ... ON CONFLICT DO UPDATE.
+        """Grava com um upsert (INSERT ... ON CONFLICT DO UPDATE), numa só instrução atómica.
 
-        Porquê não "ler, e se não existir fazer INSERT"? Porque dois pedidos ao mesmo tempo
-        (a ficha pede o filme e as notas em paralelo) podiam ambos não encontrar o registo
-        e ambos tentar o INSERT: o segundo falhava com "UNIQUE constraint failed".
-        O upsert faz tudo numa só instrução atómica (≈ MERGE em SQL Server).
+        Com "ler e, se não existir, inserir", dois pedidos simultâneos ao mesmo filme (a ficha
+        pede o filme e as notas em paralelo) faziam ambos o INSERT e o segundo falhava.
         """
         instrucao = (
             insert_sqlite(tabela)
@@ -130,9 +107,8 @@ class Catalogo:
         self.sessao.execute(instrucao)
         self.sessao.commit()
 
-
     def _ainda_valido(self, atualizado_em: datetime) -> bool:
-        # O SQLite devolve as datas sem fuso; sabemos que foram gravadas em UTC.
+        # O SQLite devolve as datas sem fuso; foram gravadas em UTC.
         if atualizado_em.tzinfo is None:
             atualizado_em = atualizado_em.replace(tzinfo=timezone.utc)
         return self.relogio() - atualizado_em < self.validade

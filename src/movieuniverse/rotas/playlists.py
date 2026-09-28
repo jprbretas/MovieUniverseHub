@@ -23,8 +23,8 @@ def listar_playlists(sessao: SessaoDep) -> list[PlaylistResumo]:
     return [PlaylistResumo.de(p) for p in servicos.listar_playlists(sessao)]
 
 
-# ATENÇÃO À ORDEM: esta rota tem de vir antes de "/{playlist_id}". O FastAPI experimenta as
-# rotas pela ordem em que são registadas, e "comparar" seria lido como um playlist_id.
+# Tem de vir antes de "/{playlist_id}": o FastAPI testa as rotas pela ordem em que são
+# registadas, e "comparar" seria lido como um id.
 @router.get("/comparar", responses=NAO_ENCONTRADA)
 def comparar_playlists(
     a: Annotated[int, Query(gt=0, description="Id da 1.ª playlist")],

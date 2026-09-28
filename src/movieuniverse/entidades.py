@@ -1,17 +1,12 @@
-"""Tabelas da base de dados (entidades do ORM).
-
-Equivalente C#: as classes de entidade do Entity Framework. Cada classe é uma tabela e
-cada atributo `Mapped[...]` é uma coluna. As `relationship` são as propriedades de
-navegação (≈ `public List<Playlist> Playlists { get; set; }`).
+"""Tabelas da base de dados.
 
 As restrições (chave primária composta, UNIQUE, CHECK) garantem as regras do enunciado
 na própria base de dados, mesmo que algum código se engane.
 
-As playlists e as notas guardam só o `tmdb_id` (a referência ao filme na TMDB). Os dados
-dos filmes (título, notas da TMDB...) ficam nas tabelas de CACHE, no fim deste ficheiro.
+As playlists e as notas guardam só o `tmdb_id`; os dados dos filmes ficam nas tabelas de
+cache, no fim do ficheiro.
 
-Nota sobre datas: o SQLite não guarda o fuso horário. Gravamos sempre em UTC e, ao ler,
-as datas vêm sem fuso ("naive"); quem as compara tem de as tratar como UTC.
+O SQLite não guarda o fuso horário: as datas são gravadas em UTC e lidas sem fuso.
 """
 from datetime import date, datetime, timezone
 
@@ -29,7 +24,7 @@ class Utilizador(Base):
     __tablename__ = "utilizadores"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    # collation NOCASE: "Ana" e "ana" contam como o mesmo nome para o UNIQUE.
+    # NOCASE: "Ana" e "ana" são o mesmo nome para o UNIQUE e para as pesquisas.
     nome: Mapped[str] = mapped_column(String(50, collation="NOCASE"), unique=True)
     criado_em: Mapped[datetime] = mapped_column(default=agora)
 
@@ -43,30 +38,26 @@ class Playlist(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     nome: Mapped[str] = mapped_column(String(100))
     utilizador_id: Mapped[int] = mapped_column(ForeignKey("utilizadores.id"))
-    # "Apagar" só marca a playlist (soft delete), tal como no seed. Ela deixa de aparecer,
-    # mas os dados não se perdem.
-    apagada: Mapped[bool] = mapped_column(default=False)
-    # O id externo da playlist: o do seed ("pl-01"...) ou o que a exportação lhe deu
-    # ("app-..."). Serve para a importação reconhecer o que já importou e não duplicar.
-    # `str | None` = coluna que aceita NULL (playlists criadas na app, ainda não exportadas).
+    apagada: Mapped[bool] = mapped_column(default=False)  # soft delete, como no seed
+    # Id externo: o do seed ("pl-01") ou o dado pela exportação ("app-..."). A importação
+    # usa-o para reconhecer o que já existe. NULL nas playlists criadas na app e não exportadas.
     id_seed: Mapped[str | None] = mapped_column(String(20), unique=True)
     criada_em: Mapped[datetime] = mapped_column(default=agora)
 
     utilizador: Mapped[Utilizador] = relationship(back_populates="playlists")
     filmes: Mapped[list["PlaylistFilme"]] = relationship(
         back_populates="playlist",
-        order_by="PlaylistFilme.ordem",   # já vêm ordenados
-        cascade="all, delete-orphan",     # tirar da lista = apagar a linha
+        order_by="PlaylistFilme.ordem",
+        cascade="all, delete-orphan",  # tirar um filme da lista apaga a linha
     )
 
 
 class PlaylistFilme(Base):
-    """Um filme dentro de uma playlist (tabela de ligação playlist <-> tmdb_id)."""
+    """Um filme dentro de uma playlist."""
 
     __tablename__ = "playlist_filmes"
 
-    # Chave primária COMPOSTA (playlist_id, tmdb_id): o mesmo filme não pode entrar duas
-    # vezes na mesma playlist. É a regra por trás da armadilha do 27205 duplicado no seed.
+    # Chave primária composta: o mesmo filme não pode estar duas vezes na mesma playlist.
     playlist_id: Mapped[int] = mapped_column(ForeignKey("playlists.id"), primary_key=True)
     tmdb_id: Mapped[int] = mapped_column(primary_key=True)
     ordem: Mapped[int]
@@ -85,28 +76,26 @@ class Nota(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     utilizador_id: Mapped[int] = mapped_column(ForeignKey("utilizadores.id"))
-    tmdb_id: Mapped[int] = mapped_column(index=True)  # índice: vamos juntar notas por filme
+    tmdb_id: Mapped[int] = mapped_column(index=True)  # as notas são procuradas por filme
     estrelas: Mapped[int]
     data: Mapped[date] = mapped_column(default=lambda: agora().date())
 
     utilizador: Mapped[Utilizador] = relationship(back_populates="notas")
 
 
-# ---------------------------------------------------------------------------
-# Cache das respostas da TMDB (ver catalogo.py)
-# ---------------------------------------------------------------------------
+# --- Cache das respostas da TMDB (ver catalogo.py) ---------------------------------
+
 class FilmeCache(Base):
-    """Ficha de um filme (FilmeDetalhe) guardada para não voltar a pedi-la à TMDB."""
+    """Ficha de um filme (FilmeDetalhe) guardada para não a pedir de novo à TMDB."""
 
     __tablename__ = "filmes_cache"
 
     tmdb_id: Mapped[int] = mapped_column(primary_key=True)
-    # Cópia de alguns campos em colunas próprias, para podermos fazer consultas
-    # (ex.: procurar só filmes com muitos votos) sem abrir o JSON.
+    # Alguns campos também em colunas próprias, para se poder consultar sem abrir o JSON.
     titulo: Mapped[str] = mapped_column(String(300))
     media_votos: Mapped[float]
     num_votos: Mapped[int]
-    dados_json: Mapped[str] = mapped_column(Text)  # o FilmeDetalhe completo, em JSON
+    dados_json: Mapped[str] = mapped_column(Text)
     atualizado_em: Mapped[datetime]
 
 

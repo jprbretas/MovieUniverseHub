@@ -1,8 +1,5 @@
-// Quem está a usar a aplicação (o utilizador que "entrou") e as playlists dele.
-//
-// Não há palavra-passe (ver DECISIONS.md): entrar é dizer o nome. O navegador guarda o
-// utilizador no localStorage para não ter de voltar a entrar ao recarregar a página
-// (≈ guardar algo no ProtectedLocalStorage/sessionStorage no Blazor).
+// Quem entrou na aplicação e as suas playlists. Não há palavra-passe (ver DECISIONS.md):
+// o utilizador fica no localStorage para não ter de entrar outra vez ao recarregar a página.
 
 import { api } from "./api.js";
 
@@ -13,7 +10,7 @@ export const sessao = {
     playlists: [],    // playlists do utilizador: [{ id, nome, dono, tmdb_ids, criada_em }]
 };
 
-// Quem quiser saber quando alguém entra ou sai regista aqui uma função (≈ um evento C#).
+// Funções a avisar quando alguém entra ou sai.
 const ouvintes = [];
 export function aoMudarSessao(funcao) {
     ouvintes.push(funcao);

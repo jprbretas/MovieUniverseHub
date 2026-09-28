@@ -3,9 +3,9 @@
 Comando:  python -m movieuniverse importar-seed
 
 Regras (ver DECISIONS.md, secção "Problemas encontrados nos dados"):
-  - Playlists marcadas como apagadas são importadas COM apagada=True (não aparecem na app).
+  - Playlists marcadas como apagadas são importadas com apagada=True (não aparecem na app).
   - Um filme repetido na mesma playlist fica só na 1.ª ocorrência (menor "ordem").
-  - Pode correr várias vezes: só cria o que falta e NUNCA altera nem apaga o que já existe.
+  - Pode correr várias vezes: só cria o que falta e nunca altera nem apaga o que já existe.
       utilizadores -> reconhecidos pelo nome (sem distinguir maiúsculas)
       playlists    -> reconhecidas pelo id do seed ("pl-01"), guardado em Playlist.id_seed
       notas        -> reconhecidas pelo par (utilizador, filme)
@@ -26,9 +26,7 @@ from movieuniverse.entidades import Nota, Playlist, PlaylistFilme, Utilizador
 FICHEIRO_SEED = RAIZ_PROJETO / "dados" / "seed_playlists.json"
 
 
-# --- Formato do ficheiro -------------------------------------------------------------
-# Validar o JSON com Pydantic apanha logo um ficheiro mal formado, com uma mensagem clara
-# (≈ desserializar para DTOs com [Required] antes de tocar na base de dados).
+# --- Formato do ficheiro (validado antes de tocar na base de dados) ------------------
 
 class SeedUtilizador(BaseModel):
     nome: str = Field(min_length=1)
@@ -68,7 +66,7 @@ class SeedFicheiro(BaseModel):
 
 @dataclass
 class Relatorio:
-    """O que a importação fez (≈ um record C# com contadores)."""
+    """O que a importação fez: contadores e avisos."""
 
     utilizadores_criados: int = 0
     utilizadores_existentes: int = 0
@@ -135,12 +133,12 @@ def _importar_playlists(
             relatorio.avisos.append(f"{item.id}: o utilizador '{item.utilizador}' não existe; playlist ignorada.")
             continue
         if sessao.scalar(select(Playlist).where(Playlist.id_seed == item.id)):
-            relatorio.playlists_existentes += 1  # já importada antes: não se toca
+            relatorio.playlists_existentes += 1  # já importada antes: fica como está
             continue
 
         playlist = Playlist(nome=item.nome, utilizador=dono, apagada=item.apagada, id_seed=item.id)
         vistos: set[int] = set()
-        for filme in sorted(item.filmes, key=lambda f: f.ordem):  # pela ordem: a 1.ª ocorrência ganha
+        for filme in sorted(item.filmes, key=lambda f: f.ordem):  # a 1.ª ocorrência ganha
             if filme.tmdb_id in vistos:
                 relatorio.avisos.append(
                     f"{item.id}: o filme {filme.tmdb_id} aparece repetido (ordem {filme.ordem}); "
@@ -160,7 +158,7 @@ def _importar_notas(
     sessao: Session, seed: SeedFicheiro, utilizadores: dict[str, Utilizador], relatorio: Relatorio
 ) -> None:
     sessao.flush()
-    vistas: set[tuple[int, int]] = set()  # (utilizador_id, tmdb_id) já tratados nesta importação
+    vistas: set[tuple[int, int]] = set()  # (utilizador_id, tmdb_id) já tratados neste ficheiro
     for item in seed.notas:
         autor = utilizadores.get(item.utilizador.strip().lower())
         if autor is None:

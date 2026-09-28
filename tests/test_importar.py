@@ -1,7 +1,4 @@
-"""Testes da importação do seed, com o ficheiro verdadeiro (dados/seed_playlists.json).
-
-Cada teste recebe uma base de dados nova em memória (`sessao`, do conftest.py).
-"""
+"""Testes da importação do seed, com o ficheiro verdadeiro (dados/seed_playlists.json)."""
 import json
 
 import pytest

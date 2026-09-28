@@ -1,7 +1,4 @@
-"""Testes da nota combinada: os casos que o enunciado exige e os limites da regra.
-
-A função é pura, por isso estes testes não precisam de base de dados nem de rede.
-"""
+"""Testes da nota combinada: os casos que o enunciado exige e os limites da regra."""
 import pytest
 
 from movieuniverse.nota_combinada import NOTA_NEUTRA, calcular_nota_combinada

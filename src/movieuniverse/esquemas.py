@@ -1,13 +1,7 @@
-"""Esquemas (DTOs) da nossa API: o formato do JSON que entra e sai dos endpoints.
+"""Esquemas da API: o formato do JSON que entra e sai dos endpoints.
 
-Equivalente C#: as classes DTO / ViewModel de um projeto ASP.NET, separadas das
-entidades do Entity Framework. Porquê separar?
-  - As entidades (entidades.py) têm o formato da base de dados.
-  - Os esquemas têm o formato que o frontend precisa (ex.: o nome do dono da playlist
-    em vez do utilizador_id) e as regras de validação da entrada.
-Assim podemos mudar uma tabela sem partir a API, e vice-versa.
-
-Os métodos `de(...)` convertem entidade -> esquema (≈ um mapeamento manual, sem AutoMapper).
+Estão separados das entidades para a API e a base de dados poderem mudar uma sem a outra.
+Os métodos `de(...)` convertem uma entidade no esquema correspondente.
 """
 from datetime import date, datetime, timezone
 from typing import Annotated
@@ -20,12 +14,10 @@ from movieuniverse.tmdb import FilmeResumo
 
 
 def em_utc(momento: datetime) -> datetime:
-    """O SQLite devolve as datas sem fuso; foram gravadas em UTC, por isso marcamo-las como UTC.
-    Assim o JSON leva o "+00:00" e o navegador converte bem para a hora local."""
+    """Marca como UTC uma data lida do SQLite (que não guarda o fuso), para o JSON levar "+00:00"."""
     return momento if momento.tzinfo else momento.replace(tzinfo=timezone.utc)
 
 
-# Texto sem espaços nas pontas e com tamanho controlado (≈ [Required, StringLength(50)]).
 NomeUtilizador = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50)]
 NomePlaylist = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
 

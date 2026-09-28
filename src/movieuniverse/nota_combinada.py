@@ -1,10 +1,8 @@
 """Nota combinada: junta a nota da TMDB e as notas dos utilizadores da aplicação.
 
-Função PURA: recebe médias e números de votos e devolve a nota e uma explicação.
-Não depende da interface, da base de dados nem da rede, por isso é fácil de testar e de
-reutilizar (a ficha do filme e a comparação de playlists usam esta mesma função).
-
-A regra (ver DECISIONS.md, secção "Nota combinada") é uma MÉDIA BAYESIANA:
+Função pura (não depende da interface, da base de dados nem da rede): recebe médias e
+números de votos e devolve a nota e uma explicação. A regra é uma média bayesiana
+(ver DECISIONS.md, secção "Nota combinada"):
 
                      v × R  +  m × C
     nota combinada = ───────────────
@@ -46,7 +44,7 @@ def _milhares(numero: int) -> str:
 
 
 class NotaCombinada(BaseModel):
-    """O resultado do cálculo (≈ um record imutável em C#)."""
+    """O resultado do cálculo (imutável)."""
 
     model_config = {"frozen": True}
 

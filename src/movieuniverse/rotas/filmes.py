@@ -1,8 +1,7 @@
-"""Rotas dos filmes: pesquisa e detalhe (≈ um FilmesController em ASP.NET).
+"""Rotas dos filmes: pesquisa, ficha e notas.
 
-As funções são "finas": validam a entrada, chamam o Catálogo e devolvem o modelo.
-Os erros da TMDB (FilmeNaoEncontrado, TMDBIndisponivel...) NÃO são tratados aqui:
-sobem até aos exception handlers do api.py, que os convertem em respostas HTTP.
+Os erros da TMDB não são tratados aqui: os exception handlers do api.py convertem-nos
+em respostas HTTP.
 """
 from typing import Annotated
 
@@ -15,7 +14,7 @@ from movieuniverse.tmdb import PAGINA_MAXIMA, FilmeDetalhe, PaginaPesquisa
 
 router = APIRouter(prefix="/api/filmes", tags=["filmes"])
 
-# Documentação dos erros possíveis, para aparecerem no Swagger.
+# Erros possíveis, para aparecerem no Swagger.
 ERROS_TMDB = {
     503: {"description": "A TMDB não está disponível ou recusou demasiados pedidos."},
     500: {"description": "O token da TMDB está em falta ou é inválido (configuração do .env)."},

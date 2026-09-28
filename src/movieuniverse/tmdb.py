@@ -1,16 +1,8 @@
-"""Integração com a API da TMDB.
+"""Integração com a API da TMDB: os modelos das respostas e o ClienteTMDB.
 
-Este módulo tem duas partes:
-  1. Modelos (os "DTOs") que representam as respostas da TMDB.
-  2. O ClienteTMDB, que faz os pedidos HTTP e devolve esses modelos.
-
-Os campos da TMDB estão em inglês (title, vote_count...). Nos nossos modelos usamos
-nomes em português e ligamo-los ao JSON da TMDB com `validation_alias` (≈ [JsonPropertyName]
-em C#, mas só para LER). Ao escrever (ex.: nas respostas da nossa API e no Swagger) usam-se
-os nomes em português. Assim o resto da aplicação nunca vê os nomes da TMDB.
-
-Só declaramos os campos de que precisamos: o Pydantic ignora os restantes
-(ex.: o campo não documentado "softcore" que apareceu nas respostas reais).
+Os modelos usam nomes em português, ligados aos campos da TMDB com `validation_alias`
+(que só serve para ler). As respostas da nossa API e o Swagger usam os nomes em português,
+e o resto da aplicação nunca vê os nomes da TMDB. Os campos não declarados são ignorados.
 """
 from datetime import date
 from typing import Self
@@ -21,7 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validat
 from movieuniverse.config import Settings, get_settings
 
 URL_BASE = "https://api.themoviedb.org/3"
-URL_IMAGENS = "https://image.tmdb.org/t/p/w500"  # base + tamanho (500 px de largura)
+URL_IMAGENS = "https://image.tmdb.org/t/p/w500"  # cartazes com 500 px de largura
 LINGUA_PADRAO = "pt-PT"
 LINGUA_ALTERNATIVA = "en-US"  # usada quando a sinopse em pt-PT vem vazia
 PAGINA_MAXIMA = 500           # a TMDB não devolve páginas acima da 500
@@ -38,12 +30,12 @@ def formatar_nota_tmdb(media: float, votos: int) -> str:
 
 
 class ModeloTMDB(BaseModel):
-    """Configuração comum a todos os modelos (≈ uma classe base com os atributos de JSON)."""
+    """Configuração comum aos modelos da TMDB."""
 
     model_config = ConfigDict(
-        validate_by_alias=True,  # lê o JSON da TMDB pelos nomes em inglês (validation_alias)...
-        validate_by_name=True,   # ...e também aceita os nomes em português (útil nos testes)
-        extra="ignore",          # campos que não declarámos são descartados
+        validate_by_alias=True,  # lê o JSON da TMDB pelos nomes em inglês...
+        validate_by_name=True,   # ...e aceita também os nomes em português
+        extra="ignore",
     )
 
 
@@ -69,8 +61,7 @@ class FilmeResumo(ModeloTMDB):
         """A TMDB manda "" quando não sabe a data; "" não é uma data válida, por isso vira None."""
         return valor or None
 
-    # @computed_field + @property ≈ propriedade só de leitura em C# (get => ...).
-    # O computed_field faz com que apareça também no JSON que a nossa API devolver.
+    # Os @computed_field também aparecem no JSON das respostas da API.
     @computed_field
     @property
     def ano(self) -> int | None:
@@ -88,7 +79,7 @@ class FilmeResumo(ModeloTMDB):
 
 
 class FilmeDetalhe(FilmeResumo):
-    """Um filme com todos os dados da ficha (/movie/{id}). Herda tudo do FilmeResumo."""
+    """Um filme com todos os dados da ficha (/movie/{id})."""
 
     sinopse: str = Field(default="", validation_alias="overview")
     generos: list[Genero] = Field(default_factory=list, validation_alias="genres")
@@ -115,11 +106,8 @@ class PaginaPesquisa(ModeloTMDB):
     filmes: list[FilmeResumo] = Field(validation_alias="results")
 
 
-# ---------------------------------------------------------------------------
-# Erros: cada problema tem a sua exceção, para a camada da API (api.py) poder
-# responder com o código HTTP certo (ex.: FilmeNaoEncontrado -> 404).
-# ≈ classes que herdam de Exception em C#.
-# ---------------------------------------------------------------------------
+# --- Erros: uma exceção por problema, para o api.py escolher o código HTTP ------------
+
 class ErroTMDB(Exception):
     """Erro genérico ao falar com a TMDB (base das outras)."""
 
@@ -140,18 +128,14 @@ class TMDBIndisponivel(ErroTMDB):
     """Sem rede, timeout ou erro 5xx do lado da TMDB."""
 
 
-# ---------------------------------------------------------------------------
-# Cliente
-# ---------------------------------------------------------------------------
-class ClienteTMDB:
-    """Faz os pedidos à TMDB e devolve modelos (≈ um serviço com HttpClient tipado em .NET).
+# --- Cliente ---------------------------------------------------------------------------
 
-    Uso:
-        with ClienteTMDB.da_config() as tmdb:
+class ClienteTMDB:
+    """Faz os pedidos à TMDB e devolve os modelos.
+
+        with ClienteTMDB.da_config() as tmdb:   # o `with` fecha as ligações no fim
             pagina = tmdb.pesquisar("Matrix")
             filme = tmdb.detalhe(603)
-
-    O `with` fecha as ligações no fim (≈ `using` em C#).
     """
 
     def __init__(
@@ -160,8 +144,7 @@ class ClienteTMDB:
         lingua: str = LINGUA_PADRAO,
         transport: httpx2.BaseTransport | None = None,
     ) -> None:
-        # O parâmetro `transport` só é usado nos testes, para simular respostas sem
-        # internet (≈ injetar um HttpMessageHandler falso num HttpClient em C#).
+        # `transport` só é usado nos testes, para simular a TMDB sem internet.
         if not token:
             raise TokenInvalido("Falta o TMDB_API_TOKEN no .env.")
         self.lingua = lingua
@@ -174,17 +157,15 @@ class ClienteTMDB:
 
     @classmethod
     def da_config(cls, settings: Settings | None = None) -> Self:
-        """Cria o cliente com o token do .env (≈ um método de fábrica estático)."""
+        """Cria o cliente com o token do .env."""
         settings = settings or get_settings()
         return cls(settings.tmdb_api_token.get_secret_value().strip())
-
-    # --- Operações públicas -------------------------------------------------
 
     def pesquisar(self, titulo: str, pagina: int = 1) -> PaginaPesquisa:
         """Pesquisa filmes por título. Devolve uma página (20 filmes no máximo)."""
         titulo = titulo.strip()
         if not titulo:
-            # Não vale a pena gastar um pedido: devolvemos uma página vazia.
+            # Não vale a pena gastar um pedido.
             return PaginaPesquisa(pagina=1, total_paginas=0, total_resultados=0, filmes=[])
         if not 1 <= pagina <= PAGINA_MAXIMA:
             raise ValueError(f"A página tem de estar entre 1 e {PAGINA_MAXIMA}.")
@@ -202,11 +183,8 @@ class ClienteTMDB:
         )
         if not filme.sinopse and self.lingua != LINGUA_ALTERNATIVA:
             alternativo = self._get(f"/movie/{tmdb_id}", {"language": LINGUA_ALTERNATIVA})
-            # model_copy(update=...) cria uma cópia com um campo alterado (≈ `with` dos records em C#).
             filme = filme.model_copy(update={"sinopse": alternativo.get("overview") or ""})
         return filme
-
-    # --- Detalhes internos --------------------------------------------------
 
     def _get(self, caminho: str, params: dict) -> dict:
         """Faz um GET e traduz os erros HTTP para as nossas exceções."""
@@ -234,7 +212,6 @@ class ClienteTMDB:
     def fechar(self) -> None:
         self._http.close()
 
-    # __enter__/__exit__ permitem usar o cliente num `with` (≈ implementar IDisposable).
     def __enter__(self) -> Self:
         return self
 

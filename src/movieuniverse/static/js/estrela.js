@@ -1,7 +1,5 @@
-// A estrela ★ dos cards e da ficha: abre um pequeno menu para pôr o filme nas playlists
-// do utilizador (ou tirá-lo), e para criar uma playlist nova ali mesmo.
-//   ☆ vazia -> o filme não está em nenhuma das minhas playlists
-//   ★ cheia -> está em pelo menos uma
+// A ★ dos cards e da ficha: abre um menu para pôr o filme nas playlists do utilizador,
+// tirá-lo ou criar uma playlist nova. Cheia (★) se o filme estiver em pelo menos uma.
 
 import { api } from "./api.js";
 import { atualizarPlaylist, playlistsCom, sessao } from "./sessao.js";

@@ -4,8 +4,8 @@ Faz as duas chamadas de que a aplicação vai precisar e mostra o resultado:
   1. GET /search/movie?query=...  -> lista de filmes que correspondem ao título
   2. GET /movie/{id}              -> detalhe de um filme
 
-Também guarda o JSON completo de cada resposta em tests/fixtures/tmdb/, para o
-podermos abrir no VS Code e, mais tarde, usar como dados nos testes (sem internet).
+Também guarda o JSON completo de cada resposta em tests/fixtures/tmdb/, onde os testes
+o usam como dados (sem internet).
 
 Uso (na raiz do projeto, com o .venv ativo):
     python scripts/explorar_tmdb.py                     # pesquisa "Matrix"
@@ -13,7 +13,7 @@ Uso (na raiz do projeto, com o .venv ativo):
     python scripts/explorar_tmdb.py "Matrix" --id 603   # escolhe o filme do detalhe
     python scripts/explorar_tmdb.py "Matrix" --lingua en-US
 
-O token é lido do .env (via config.py) e NUNCA é mostrado.
+O token é lido do .env e nunca é mostrado.
 """
 import argparse
 import json
@@ -30,7 +30,7 @@ PASTA_FIXTURES = RAIZ_PROJETO / "tests" / "fixtures" / "tmdb"
 
 
 def criar_cliente(token: str) -> httpx2.Client:
-    """Cliente HTTP já configurado (≈ HttpClient com BaseAddress e DefaultRequestHeaders)."""
+    """Cliente HTTP já configurado com o endereço da TMDB e o token."""
     return httpx2.Client(
         base_url=URL_BASE,
         headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
@@ -52,8 +52,8 @@ def formatar_nota(media: float, votos: int) -> str:
 def explorar(cliente: httpx2.Client, titulo: str, tmdb_id: int | None, lingua: str) -> None:
     # 1) Pesquisa por título -------------------------------------------------
     resposta = cliente.get("/search/movie", params={"query": titulo, "language": lingua})
-    resposta.raise_for_status()  # lança exceção se o status for 4xx/5xx
-    pesquisa = resposta.json()   # ≈ JsonSerializer.Deserialize<Dictionary<...>>
+    resposta.raise_for_status()
+    pesquisa = resposta.json()
     caminho = guardar_json(pesquisa, f"pesquisa_{titulo.lower().replace(' ', '_')}.json")
 
     filmes = pesquisa["results"]

@@ -1,10 +1,6 @@
-"""Peças partilhadas pelos testes (o pytest carrega este ficheiro automaticamente).
+"""Fixtures partilhadas pelos testes: a TMDB falsa, a base de dados em memória e a API.
 
-Atenção a duas palavras parecidas:
-  - "fixtures" (pasta tests/fixtures/): FICHEIROS com dados de teste (os JSON reais da TMDB).
-  - @pytest.fixture (abaixo): FUNÇÕES que preparam objetos para os testes. Um teste que
-    declara um parâmetro com o mesmo nome recebe esse objeto automaticamente
-    (≈ injeção de dependências no construtor de uma classe de testes xUnit).
+Não confundir com a pasta tests/fixtures/, que tem os JSON reais da TMDB usados como dados.
 """
 import json
 from pathlib import Path
@@ -25,10 +21,9 @@ def carregar_json(nome: str) -> dict:
 
 
 class TMDBFalsa:
-    """Imita a API da TMDB sem internet (≈ um HttpMessageHandler falso, ou um mock do Moq).
+    """Imita a API da TMDB sem internet.
 
-    Configura-se com `responder(...)` e, no fim, dá para ver que pedidos foram feitos
-    em `self.pedidos`.
+    Configura-se com `responder(...)` e `falhar(...)`; os pedidos recebidos ficam em `self.pedidos`.
     """
 
     def __init__(self) -> None:
@@ -51,7 +46,6 @@ class TMDBFalsa:
         self._respostas[(caminho, None)] = erro
 
     def __call__(self, pedido: httpx2.Request) -> httpx2.Response:
-        # __call__ faz com que o objeto possa ser chamado como uma função: tmdb_falsa(pedido)
         self.pedidos.append(pedido)
         caminho = pedido.url.path.removeprefix("/3")
         lingua = pedido.url.params.get("language")
@@ -80,12 +74,12 @@ def tmdb_falsa() -> TMDBFalsa:
 def cliente(tmdb_falsa: TMDBFalsa):
     """Um ClienteTMDB verdadeiro, mas ligado à TMDB falsa em vez da internet."""
     with ClienteTMDB("token-de-teste", transport=httpx2.MockTransport(tmdb_falsa)) as c:
-        yield c  # o teste corre aqui; depois do yield, o `with` fecha o cliente (≈ Dispose)
+        yield c
 
 
 @pytest.fixture
 def engine_da_sessao():
-    """O engine de uma base de dados SQLite nova, EM MEMÓRIA ("sqlite://" sem caminho)."""
+    """O engine de uma base de dados SQLite nova, em memória."""
     engine = criar_engine("sqlite://")
     criar_tabelas(engine)
     yield engine
@@ -94,21 +88,14 @@ def engine_da_sessao():
 
 @pytest.fixture
 def sessao(engine_da_sessao):
-    """Uma sessão nessa base de dados em memória, nova para cada teste (não toca no ficheiro real).
-
-    ≈ usar o provider InMemory/SQLite in-memory do EF Core nos testes.
-    """
+    """Uma sessão nessa base de dados em memória, nova para cada teste."""
     with Session(engine_da_sessao) as s:
         yield s
 
 
 @pytest.fixture
 def api(sessao, cliente):
-    """Um cliente HTTP para a nossa API, ligado à base de dados em memória e à TMDB falsa.
-
-    Trocamos as dependências reais pelas de teste (≈ ConfigureTestServices no
-    WebApplicationFactory do ASP.NET).
-    """
+    """Um cliente HTTP para a API, ligado à base de dados em memória e à TMDB falsa."""
     from fastapi.testclient import TestClient
 
     from movieuniverse.api import app
@@ -119,4 +106,4 @@ def api(sessao, cliente):
     app.dependency_overrides[obter_sessao] = lambda: sessao
     app.dependency_overrides[obter_catalogo] = lambda: Catalogo(sessao, cliente)
     yield TestClient(app)
-    app.dependency_overrides.clear()  # não deixar a troca "vazar" para outros testes
+    app.dependency_overrides.clear()  # para a troca não passar para outros testes
