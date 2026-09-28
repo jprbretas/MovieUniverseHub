@@ -8,7 +8,7 @@ e das regras que a própria aplicação garante.
 | | |
 |---|---|
 | **Testes automáticos** | 120, todos a passar (`pytest`) |
-| **Casos de teste neste relatório** | 68, todos cumpridos (os últimos 13 são do servidor MCP, um extra) |
+| **Casos de teste neste relatório** | 72, todos cumpridos (13 são do servidor MCP, um extra) |
 | **Não implementado** | o jogo "mais alto ou mais baixo" (opcional) |
 
 ## Como foi testado
@@ -18,7 +18,8 @@ e das regras que a própria aplicação garante.
   `tests/fixtures/tmdb/`, e cada teste usa uma base de dados nova em memória. A coluna "Prova"
   indica o ficheiro e o teste. Para os correr: `pytest -v`.
 - **No navegador**, com os dados do seed importados, para o que depende do ecrã (cards, ficha,
-  ★, comparação). A demonstração do README percorre estes casos em 5 minutos.
+  ★, comparação). A demonstração do README percorre estes casos em 5 minutos. Na revisão do
+  design, também com screenshots automáticos (Playwright) em ecrã de computador e de telemóvel.
 - **Servidor MCP:** um cliente MCP verdadeiro, ligado em memória ao servidor nos testes, e
   ligado pelo stdio (como o Claude Desktop faz) numa verificação manual.
 - **Instalação numa máquina limpa**, seguindo o README do início ao fim: num clone novo em Linux e
@@ -131,6 +132,15 @@ outros. Para correr um só teste: `pytest tests/test_importar.py::test_correr_du
 | 66 | Arranque pelo stdio | Um cliente MCP arrancou `python -m movieuniverse mcp` como processo, recebeu as instruções e as 6 ferramentas e listou as playlists do bruno, sem nada estranho no stdout. | stdio (manual) |
 | 67 | Na app do Claude | Com o servidor no `claude_desktop_config.json`, o Claude arrancou-o sozinho e usou as ferramentas: listou as playlists do bruno, comparou "Ficção científica" com "Maratona sci-fi" (8,16 contra 8,05, os mesmos números do ecrã Comparar), mostrou a ficha do Interstellar com a nota combinada e recebeu um erro legível para a playlist 999. | Claude Desktop (manual, Windows) |
 | 68 | Sem IA, com o MCP Inspector | O MCP Inspector (`npx @modelcontextprotocol/inspector --config mcp-inspector.json`) ligou-se ao servidor, mostrou as 6 ferramentas com o selo "read-only" e executou-as uma a uma, com as mensagens JSON-RPC à vista. | MCP Inspector (manual, Windows) |
+
+## Interface
+
+| # | Caso | Resultado | Prova |
+|---|---|---|---|
+| 69 | Filme sem cartaz | Aparece um cartaz só com o título, em vez de um espaço vazio. O mesmo acontece se a imagem não carregar. | navegador |
+| 70 | Ecrã de telemóvel | A 390 px de largura não há scroll horizontal, a pesquisa ocupa a largura toda e o menu passa para uma barra no fundo do ecrã. | navegador |
+| 71 | Apagar uma playlist | Aparece uma caixa de confirmação; "Cancelar" ou Escape não apagam nada. | navegador |
+| 72 | Atalho de teclado | A tecla / leva o cursor para a pesquisa, e Enter pesquisa. | navegador |
 
 ---
 
