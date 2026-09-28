@@ -8,7 +8,7 @@ e das regras que a própria aplicação garante.
 | | |
 |---|---|
 | **Testes automáticos** | 120, todos a passar (`pytest`) |
-| **Casos de teste neste relatório** | 66, todos cumpridos (os últimos 11 são do servidor MCP, um extra) |
+| **Casos de teste neste relatório** | 68, todos cumpridos (os últimos 13 são do servidor MCP, um extra) |
 | **Não implementado** | o jogo "mais alto ou mais baixo" (opcional) |
 
 ## Como foi testado
@@ -129,6 +129,8 @@ outros. Para correr um só teste: `pytest tests/test_importar.py::test_correr_du
 | 64 | Sem token da TMDB | As ferramentas da TMDB explicam que falta o token, e as de playlists continuam a funcionar. | `servidor_mcp`: `test_sem_token_so_as_ferramentas_da_tmdb_falham` |
 | 65 | O MCP não altera dados | Depois de chamar as ferramentas, o número de utilizadores, playlists, filmes nas playlists e notas é o mesmo. | `servidor_mcp`: `test_as_ferramentas_nao_alteram_os_dados` |
 | 66 | Arranque pelo stdio | Um cliente MCP arrancou `python -m movieuniverse mcp` como processo, recebeu as instruções e as 6 ferramentas e listou as playlists do bruno, sem nada estranho no stdout. | stdio (manual) |
+| 67 | Na app do Claude | Com o servidor no `claude_desktop_config.json`, o Claude arrancou-o sozinho e usou as ferramentas: listou as playlists do bruno, comparou "Ficção científica" com "Maratona sci-fi" (8,16 contra 8,05, os mesmos números do ecrã Comparar), mostrou a ficha do Interstellar com a nota combinada e recebeu um erro legível para a playlist 999. | Claude Desktop (manual, Windows) |
+| 68 | Sem IA, com o MCP Inspector | O MCP Inspector (`npx @modelcontextprotocol/inspector --config mcp-inspector.json`) ligou-se ao servidor, mostrou as 6 ferramentas com o selo "read-only" e executou-as uma a uma, com as mensagens JSON-RPC à vista. | MCP Inspector (manual, Windows) |
 
 ---
 
