@@ -1,11 +1,8 @@
-"""Regras de negócio de utilizadores, playlists e notas (camada de negócio).
+"""Regras de negócio de utilizadores, playlists e notas.
 
-Equivalente C#: uma classe de serviço (ex.: PlaylistService) que recebe o DbContext.
-Aqui são funções simples que recebem a `sessao` como primeiro parâmetro.
-
-As rotas (rotas/*.py) só tratam de HTTP; tudo o que é regra ("uma nota por utilizador e
-por filme", "apagar só marca como apagada", "adicionar duas vezes não duplica") está aqui.
-Isto também torna as regras fáceis de reutilizar, por exemplo na importação do seed.
+Cada função recebe a `sessao` da base de dados. As rotas e o servidor MCP só tratam da sua
+interface; as regras ("uma nota por utilizador e por filme", "apagar só marca como
+apagada", "adicionar duas vezes não duplica") estão aqui, num só sítio.
 """
 from typing import TYPE_CHECKING
 

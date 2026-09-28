@@ -1,8 +1,4 @@
-"""Configuração da aplicação, lida do ficheiro .env.
-
-Equivalente C#: appsettings.json + IOptions<T>. O pydantic-settings lê as
-variáveis de ambiente (e o ficheiro .env) e valida-as contra os tipos declarados.
-"""
+"""Configuração da aplicação, lida do ficheiro .env e das variáveis de ambiente."""
 from functools import lru_cache
 from pathlib import Path
 
@@ -20,15 +16,14 @@ class Settings(BaseSettings):
         env_file=RAIZ_PROJETO / ".env",
         env_file_encoding="utf-8",
         env_ignore_empty=True,  # "PORT=" vazio no .env -> usa o valor por omissão
-        extra="ignore",         # variáveis desconhecidas no .env não dão erro
+        extra="ignore",
     )
 
-    # SecretStr esconde o valor em prints/logs: aparece "**********".
+    # SecretStr: o valor aparece como "**********" em prints e logs.
     tmdb_api_token: SecretStr = SecretStr("")
     host: str = "127.0.0.1"
     port: int = 8000
-    reload: bool = True  # reinicia ao gravar um .py (≈ dotnet watch); RELOAD=false no .env desliga
-    # Ficheiro SQLite em dados/ (≈ a connection string do appsettings.json).
+    reload: bool = True
     database_url: str = f"sqlite:///{(RAIZ_PROJETO / 'dados' / 'movieuniverse.db').as_posix()}"
 
     @property
@@ -39,5 +34,5 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    """Devolve sempre a mesma instância (≈ registar como Singleton no DI do .NET)."""
+    """Lê o .env uma só vez e devolve sempre a mesma instância."""
     return Settings()

@@ -1,22 +1,6 @@
-// Frontend do MovieUniverse Hub: uma "single page app" simples, sem frameworks.
-//
-// Navegação: cada ecrã tem um endereço depois do #, por exemplo:
-//   #/                          início (as minhas playlists)
-//   #/pesquisa?titulo=Dune      resultados da pesquisa
-//   #/filme/603                 ficha do filme (com as notas)
-//   #/playlist/4                uma playlist
-//   #/comparar?a=1&b=2          comparação de duas playlists
-//   #/sobre                     ecrã "Sobre"
-// Quando o # muda, o navegador dispara o evento "hashchange" e desenhamos o ecrã certo
-// dentro do <main id="conteudo">. Os botões Voltar/Avançar do navegador funcionam sozinhos.
-// (≈ as rotas do Blazor com @page "/filme/{id}", mas feitas à mão.)
-//
-// Ficheiros:
-//   api.js     chamadas à API REST
-//   sessao.js  quem entrou e as suas playlists
-//   estrela.js a ★ e o menu "Guardar nas playlists"
-//   util.js    esc(), formatações, cartaz
-//   app.js     (este) navegação, ecrãs e eventos
+// Frontend do MovieUniverse Hub: uma single page app sem frameworks.
+// Cada ecrã tem um endereço depois do # (ex.: #/filme/603, #/comparar?a=1&b=2); quando o #
+// muda, o evento "hashchange" desenha o ecrã certo dentro do <main id="conteudo">.
 
 import { api } from "./api.js";
 import { abrirMenu, fecharMenu, htmlEstrela } from "./estrela.js";
@@ -76,8 +60,8 @@ function htmlCard(filme, extra = "") {
 }
 
 // --- Ecrãs -----------------------------------------------------------------------
-// Cada função recebe `ehAtual()`: se o utilizador já navegou para outro sítio enquanto
-// esperávamos pela API, não desenhamos nada (evita um ecrã antigo "por cima" do novo).
+// Cada ecrã recebe `ehAtual()`: se o utilizador já navegou para outro sítio enquanto a API
+// respondia, não desenha nada (evita um ecrã antigo por cima do novo).
 
 function ecraInicio() {
     campoPesquisa.value = "";
@@ -141,7 +125,7 @@ function htmlPaginacao(titulo, pagina, totalPaginas) {
 }
 
 async function ecraFilme(tmdbId, ehAtual) {
-    // As duas chamadas em paralelo (≈ Task.WhenAll): a ficha e as notas dos utilizadores.
+    // A ficha e as notas dos utilizadores, em paralelo.
     const [filme, notas] = await Promise.all([api.filme(tmdbId), api.notasDoFilme(tmdbId)]);
     if (!ehAtual()) return;
 
@@ -197,7 +181,7 @@ function htmlNotas(notaTmdbTexto, notas) {
             </div>`;
     }
 
-    // A nota combinada vem calculada da API (função pura no backend: nota_combinada.py).
+    // A nota combinada vem já calculada pela API.
     const combinada = notas.nota_combinada;
 
     return `
@@ -402,8 +386,8 @@ async function navegar() {
 }
 
 // --- Eventos ---------------------------------------------------------------------
-// Os botões são desenhados e redesenhados com innerHTML, por isso usamos "delegação":
-// um só ouvinte no documento que vê em que botão se clicou (pelo data-acao).
+// Os botões são recriados com innerHTML a cada ecrã, por isso há um só ouvinte no documento
+// que vê em que botão se clicou (pelo data-acao).
 
 formPesquisa.addEventListener("submit", (evento) => {
     evento.preventDefault(); // impede o <form> de recarregar a página

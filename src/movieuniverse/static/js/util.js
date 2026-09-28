@@ -1,9 +1,8 @@
 // Pequenas funções usadas por vários ecrãs.
 
 /**
- * Escapa texto antes de o pôr dentro de HTML (≈ o que o Razor faz sozinho com @variavel).
- * Sem isto, um título vindo da TMDB com "<script>" seria executado no navegador (XSS).
- * Regra: TODO o texto que vem da API passa por esc() antes de entrar no innerHTML.
+ * Escapa texto antes de o pôr dentro de HTML, para evitar XSS: todo o texto que vem da API
+ * passa por esc() antes de entrar no innerHTML.
  */
 export function esc(texto) {
     const trocas = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };

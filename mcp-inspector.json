@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "movieuniverse": {
+      "command": "python",
+      "args": ["-m", "movieuniverse", "mcp"]
+    }
+  }
+}

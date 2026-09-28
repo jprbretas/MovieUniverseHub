@@ -1,8 +1,6 @@
-"""Montagem da API (FastAPI): cria o objeto `app`, regista as rotas e serve o frontend.
+"""Montagem da API: cria o `app`, regista as rotas e os erros e serve o frontend.
 
-Equivalente C#: a parte do Program.cs entre o builder.Build() e os app.MapControllers().
-Este módulo NÃO arranca servidor nenhum; quem o arranca é o __main__.py (via uvicorn).
-Por isso os testes podem importar o `app` daqui sem ligar nada.
+Não arranca nenhum servidor (isso é feito no __main__.py, com o uvicorn).
 """
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -29,11 +27,11 @@ PASTA_STATIC = Path(__file__).parent / "static"
 
 @asynccontextmanager
 async def ciclo_de_vida(app: FastAPI):
-    """Código que corre ao arrancar (antes do yield) e ao desligar (depois do yield)."""
-    criar_tabelas()  # ≈ context.Database.EnsureCreated() no arranque de uma app .NET
+    """Cria as tabelas ao arrancar e fecha o cliente da TMDB ao desligar."""
+    criar_tabelas()
     yield
-    if obter_cliente_tmdb.cache_info().currsize:  # se o cliente chegou a ser criado...
-        obter_cliente_tmdb().fechar()             # ...fecha as ligações HTTP
+    if obter_cliente_tmdb.cache_info().currsize:  # só se o cliente chegou a ser criado
+        obter_cliente_tmdb().fechar()
 
 
 app = FastAPI(
@@ -43,8 +41,7 @@ app = FastAPI(
     lifespan=ciclo_de_vida,
 )
 
-# --- Rotas -------------------------------------------------------------------
-app.include_router(filmes.router)  # ≈ app.MapControllers()
+app.include_router(filmes.router)
 app.include_router(utilizadores.router)
 app.include_router(playlists.router)
 
@@ -56,15 +53,12 @@ def health() -> dict[str, object]:
     return {"status": "ok", "tmdb_configurada": settings.tmdb_configurada}
 
 
-# --- Erros da TMDB -> respostas HTTP ------------------------------------------
-# ≈ um exception filter / UseExceptionHandler do ASP.NET: as rotas limitam-se a lançar
-# as nossas exceções e este mapa decide o código HTTP. O corpo segue o formato habitual
-# do FastAPI: {"detail": "mensagem"}.
+# As rotas só lançam exceções; aqui decide-se o código HTTP. Corpo: {"detail": "mensagem"}.
 CODIGOS_HTTP = {
-    FilmeNaoEncontrado: 404,  # o filme não existe
+    FilmeNaoEncontrado: 404,
     TokenInvalido: 500,       # problema de configuração do nosso lado (.env)
-    LimitePedidos: 503,       # a TMDB pediu para abrandar
-    TMDBIndisponivel: 503,    # sem rede, timeout ou erro da TMDB
+    LimitePedidos: 503,
+    TMDBIndisponivel: 503,
 }
 
 
@@ -79,7 +73,5 @@ async def tratar_nao_encontrado(pedido: Request, erro: NaoEncontrado) -> JSONRes
     return JSONResponse(status_code=404, content={"detail": str(erro)})
 
 
-# --- Frontend -----------------------------------------------------------------
-# Tem de ficar no FIM: o mount em "/" apanha tudo o que as rotas /api/... não apanharam.
-# html=True faz com que "/" devolva o index.html.
+# Tem de ficar no fim: o mount em "/" apanha tudo o que as rotas /api/... não apanharam.
 app.mount("/", StaticFiles(directory=PASTA_STATIC, html=True), name="static")

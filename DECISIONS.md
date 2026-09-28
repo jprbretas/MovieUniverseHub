@@ -12,6 +12,7 @@ decisões mais importantes; as secções seguintes dão os detalhes.
 [Base de dados e cache](#base-de-dados-e-cache) ·
 [Problemas encontrados nos dados](#problemas-encontrados-nos-dados) ·
 [Importação e exportação](#importação-e-exportação) ·
+[Servidor MCP](#servidor-mcp-extra) ·
 [Jogo](#jogo-mais-alto-ou-mais-baixo) ·
 [Limitações conhecidas](#limitações-conhecidas)
 
@@ -221,6 +222,33 @@ Outras escolhas da importação:
 noutra instalação. As playlists do seed mantêm o seu id; as criadas na aplicação recebem, na
 primeira exportação, um id próprio (`app-` seguido de 8 caracteres). Assim, importar o ficheiro
 de volta reconhece-as e também não duplica nada.
+
+---
+
+## Servidor MCP (extra)
+
+Os gestores do projeto sugeriram um servidor MCP, para que uma IA (como o Claude Desktop)
+consiga usar a aplicação. Não faz parte do enunciado. O código está em
+`src/movieuniverse/servidor_mcp.py`, com o SDK oficial `mcp` (versão 2), e as instruções no README.
+
+- **Só consulta.** As 6 ferramentas pesquisam, mostram fichas e playlists e comparam, mas
+  nenhuma cria, altera ou apaga dados. Sem login, uma ferramenta de escrita deixaria qualquer
+  cliente agir como qualquer utilizador, e uma IA pode interpretar mal um pedido. Escrever fica
+  para quando houver autenticação. A única coisa que muda na base de dados é a cache da TMDB,
+  como quando se usa o site.
+- **Usa as camadas diretamente, e não a API REST.** O servidor chama o `servicos.py` e o
+  `catalogo.py`, como as rotas. Assim as regras não se repetem, é um só processo, e não é
+  preciso ter o site a correr. É a mesma separação em camadas a dar frutos: a nota combinada é
+  calculada pela mesma função pura no site, na API e no MCP.
+- **Transporte stdio.** O Claude Desktop arranca o servidor como um processo local e fala com
+  ele pelo stdin/stdout. O servidor não abre nenhuma porta na rede. Por isso o código do
+  servidor nunca escreve no stdout (`print`), que é reservado às mensagens do protocolo.
+- **Respostas feitas para uma IA.** As respostas são pequenas (por exemplo, o texto
+  "8,4 · 30 003 votos" em vez de três números), porque cada campo gasta espaço da conversa. Os
+  erros esperados (playlist inexistente, TMDB em baixo, token em falta) chegam à IA como uma
+  frase que ela consegue ler e corrigir, em vez de um erro genérico.
+- **O token da TMDB fica no `.env`.** A configuração do Claude Desktop só tem o caminho do
+  Python e o comando, e o servidor lê o token do `.env`, como o site.
 
 ---
 

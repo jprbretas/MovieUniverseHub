@@ -1,7 +1,4 @@
-"""Testes das regras que a própria base de dados garante (chaves e restrições).
-
-O parâmetro `sessao` vem do conftest.py: uma base de dados nova em memória por teste.
-"""
+"""Testes das regras que a própria base de dados garante (chaves e restrições)."""
 import pytest
 from sqlalchemy.exc import IntegrityError
 
@@ -11,7 +8,7 @@ from movieuniverse.entidades import Nota, Playlist, PlaylistFilme, Utilizador
 def criar_utilizador(sessao, nome="ana") -> Utilizador:
     utilizador = Utilizador(nome=nome)
     sessao.add(utilizador)
-    sessao.flush()  # envia o INSERT já (≈ SaveChanges sem fechar a transação) e preenche o id
+    sessao.flush()  # envia o INSERT já, para o utilizador ter id
     return utilizador
 
 
@@ -24,7 +21,7 @@ def test_playlist_devolve_filmes_pela_ordem(sessao):
     ]
     sessao.add(playlist)
     sessao.commit()
-    sessao.expire_all()  # obriga a reler da base de dados, em vez de usar o que está em memória
+    sessao.expire_all()  # obriga a reler da base de dados
 
     relida = sessao.get(Playlist, playlist.id)
     assert [f.tmdb_id for f in relida.filmes] == [27205, 603]

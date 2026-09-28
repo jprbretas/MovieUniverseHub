@@ -13,8 +13,6 @@ from movieuniverse.tmdb import (
 )
 
 # --- Texto da nota -----------------------------------------------------------
-# @pytest.mark.parametrize ≈ [Theory] + [InlineData(...)] do xUnit: o mesmo teste corre
-# uma vez por cada linha da lista.
 
 
 @pytest.mark.parametrize(
@@ -87,6 +85,5 @@ def test_campos_desconhecidos_sao_ignorados():
 
 
 def test_id_invalido_da_erro_de_validacao():
-    # pytest.raises ≈ Assert.Throws<ValidationError>(...) do xUnit
     with pytest.raises(ValidationError):
         FilmeResumo.model_validate({"id": "abc", "title": "X"})

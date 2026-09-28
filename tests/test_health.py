@@ -1,8 +1,4 @@
-"""Testes de fumo: a API arranca e a página inicial é servida.
-
-Equivalente C#: testes xUnit com WebApplicationFactory. O TestClient chama a app
-em memória, sem abrir nenhuma porta.
-"""
+"""Testes de fumo: a API arranca e a página inicial e o frontend são servidos."""
 import pytest
 from fastapi.testclient import TestClient
 
@@ -21,7 +17,7 @@ def test_health_responde_ok():
 def test_health_nunca_expoe_o_token():
     corpo = client.get("/api/health").json()
 
-    # Só dizemos SE está configurado, nunca O QUÊ.
+    # Diz se o token está configurado, nunca qual é.
     assert set(corpo.keys()) == {"status", "tmdb_configurada"}
     assert isinstance(corpo["tmdb_configurada"], bool)
 

@@ -7,8 +7,8 @@ e das regras que a própria aplicação garante.
 
 | | |
 |---|---|
-| **Testes automáticos** | 110, todos a passar (`pytest`) |
-| **Casos de teste neste relatório** | 55, todos cumpridos |
+| **Testes automáticos** | 120, todos a passar (`pytest`) |
+| **Casos de teste neste relatório** | 68, todos cumpridos (os últimos 13 são do servidor MCP, um extra) |
 | **Não implementado** | o jogo "mais alto ou mais baixo" (opcional) |
 
 ## Como foi testado
@@ -19,7 +19,10 @@ e das regras que a própria aplicação garante.
   indica o ficheiro e o teste. Para os correr: `pytest -v`.
 - **No navegador**, com os dados do seed importados, para o que depende do ecrã (cards, ficha,
   ★, comparação). A demonstração do README percorre estes casos em 5 minutos.
-- **Instalação numa pasta limpa**, seguindo o README do início ao fim.
+- **Servidor MCP:** um cliente MCP verdadeiro, ligado em memória ao servidor nos testes, e
+  ligado pelo stdio (como o Claude Desktop faz) numa verificação manual.
+- **Instalação numa máquina limpa**, seguindo o README do início ao fim: num clone novo em Linux e
+  numa máquina Windows sem o projeto.
 
 Na coluna "Prova", `importar` quer dizer o ficheiro `tests/test_importar.py`, e assim para os
 outros. Para correr um só teste: `pytest tests/test_importar.py::test_correr_duas_vezes_nao_duplica`.
@@ -68,8 +71,8 @@ outros. Para correr um só teste: `pytest tests/test_importar.py::test_correr_du
 
 | # | Caso | Resultado | Prova |
 |---|---|---|---|
-| 29 | Comando de importação | `importar-seed` cria 3 utilizadores, 10 playlists e 20 notas, e as notas mantêm a data do ficheiro. | `importar`: `test_importa_utilizadores_playlists_e_notas`, `test_notas_mantem_a_data_do_seed` · pasta limpa |
-| 30 | Importar duas vezes | A segunda importação não cria nada e não duplica dados. | `importar`: `test_correr_duas_vezes_nao_duplica` · pasta limpa |
+| 29 | Comando de importação | `importar-seed` cria 3 utilizadores, 10 playlists e 20 notas, e as notas mantêm a data do ficheiro. | `importar`: `test_importa_utilizadores_playlists_e_notas`, `test_notas_mantem_a_data_do_seed` · máquina limpa |
+| 30 | Importar duas vezes | A segunda importação não cria nada e não duplica dados. | `importar`: `test_correr_duas_vezes_nao_duplica` · máquina limpa |
 | 31 | Playlists apagadas no seed | São importadas como apagadas e não aparecem na aplicação. | `importar`: `test_playlists_apagadas_sao_importadas_mas_nao_aparecem` |
 | 32 | Filme repetido na mesma playlist | Fica só a 1.ª ocorrência e a repetição aparece como aviso. | `importar`: `test_filme_repetido_fica_so_na_primeira_ocorrencia` |
 | 33 | Filmes só em playlists apagadas | O relatório da importação lista-os (289, 348, 550 e 807). | `importar`: `test_filmes_so_em_playlists_apagadas_sao_assinalados` |
@@ -109,7 +112,25 @@ outros. Para correr um só teste: `pytest tests/test_importar.py::test_correr_du
 | 52 | Nota 20 (ou -5, 9,5, texto) enviada diretamente à API | É recusada com `422`; se o código da aplicação fosse contornado, a base de dados recusava-a na mesma, e um seed com nota 20 não importa nada. | `seguranca`: `test_nota_fora_de_1_a_10_ou_que_nao_e_inteiro_e_recusada_pela_api`, `test_nota_20_e_recusada_pela_base_de_dados_mesmo_contornando_a_api`, `test_seed_com_nota_20_e_recusado_sem_importar_nada` |
 | 53 | SQL injection no nome e na pesquisa | O texto com SQL é guardado como texto e nenhuma tabela é afetada. | `seguranca`: `test_sql_injection_no_nome_e_guardado_como_texto`, `test_sql_injection_na_pesquisa_nao_afeta_a_base_de_dados` |
 | 54 | Token da TMDB | O token nunca é devolvido pela API: o `/api/health` diz só se está configurado. | `health`: `test_health_nunca_expoe_o_token` |
-| 55 | Instalação numa pasta limpa | Seguindo o README num clone novo (sem `.venv` nem base de dados), a instalação, os 110 testes, a importação, a exportação e o arranque funcionaram; a base de dados foi criada sozinha e o `.env`, a base de dados e a exportação ficaram fora do Git. | pasta limpa · `health`: `test_pagina_inicial_e_servida` |
+| 55 | Instalação numa máquina limpa | Seguindo o README num clone novo (sem `.venv` nem base de dados), a instalação, os testes, a importação, a exportação e o arranque funcionaram em Linux, e a instalação, a importação e o arranque funcionaram numa máquina Windows limpa; a base de dados foi criada sozinha e o `.env`, a base de dados e a exportação ficaram fora do Git. | Linux e Windows · `health`: `test_pagina_inicial_e_servida` |
+
+## Servidor MCP (extra)
+
+| # | Caso | Resultado | Prova |
+|---|---|---|---|
+| 56 | Ferramentas disponíveis | O servidor oferece 6 ferramentas, todas marcadas como só de leitura e com uma descrição para a IA. | `servidor_mcp`: `test_todas_as_ferramentas_sao_so_de_leitura` |
+| 57 | Pesquisar filmes pela IA | A pesquisa devolve o `tmdb_id`, o ano e a nota da TMDB com o número de votos de cada filme. | `servidor_mcp`: `test_pesquisar_filmes_devolve_o_tmdb_id_e_a_nota_com_votos` |
+| 58 | Ficha de um filme pela IA | A ficha traz a nota combinada (1003 votos: 1000 da TMDB e 3 da aplicação), a explicação e as notas da ana, do bruno e da carla. | `servidor_mcp`: `test_ficha_traz_a_nota_combinada_e_as_notas_dos_utilizadores` |
+| 59 | Playlists de um utilizador | Pedir as playlists de "Ana" devolve as 3 playlists ativas da ana. | `servidor_mcp`: `test_listar_playlists_de_um_utilizador_sem_distinguir_maiusculas` |
+| 60 | Utilizador que não existe | A IA recebe um erro que lista os utilizadores que existem, para corrigir o pedido. | `servidor_mcp`: `test_utilizador_desconhecido_da_erro_com_a_lista_de_nomes` |
+| 61 | Comparar playlists pela IA | "Ficção científica" contra "Maratona sci-fi" devolve a vencedora e os 3 filmes em comum. | `servidor_mcp`: `test_comparar_playlists_do_seed` |
+| 62 | Comparar uma playlist com ela própria | É recusado com uma mensagem clara. | `servidor_mcp`: `test_comparar_a_mesma_playlist_e_recusado` |
+| 63 | Playlist que não existe | A IA recebe "Não existe nenhuma playlist com id 999" em vez de um erro genérico. | `servidor_mcp`: `test_playlist_inexistente_da_uma_mensagem_que_a_ia_percebe` |
+| 64 | Sem token da TMDB | As ferramentas da TMDB explicam que falta o token, e as de playlists continuam a funcionar. | `servidor_mcp`: `test_sem_token_so_as_ferramentas_da_tmdb_falham` |
+| 65 | O MCP não altera dados | Depois de chamar as ferramentas, o número de utilizadores, playlists, filmes nas playlists e notas é o mesmo. | `servidor_mcp`: `test_as_ferramentas_nao_alteram_os_dados` |
+| 66 | Arranque pelo stdio | Um cliente MCP arrancou `python -m movieuniverse mcp` como processo, recebeu as instruções e as 6 ferramentas e listou as playlists do bruno, sem nada estranho no stdout. | stdio (manual) |
+| 67 | Na app do Claude | Com o servidor no `claude_desktop_config.json`, o Claude arrancou-o sozinho e usou as ferramentas: listou as playlists do bruno, comparou "Ficção científica" com "Maratona sci-fi" (8,16 contra 8,05, os mesmos números do ecrã Comparar), mostrou a ficha do Interstellar com a nota combinada e recebeu um erro legível para a playlist 999. | Claude Desktop (manual, Windows) |
+| 68 | Sem IA, com o MCP Inspector | O MCP Inspector (`npx @modelcontextprotocol/inspector --config mcp-inspector.json`) ligou-se ao servidor, mostrou as 6 ferramentas com o selo "read-only" e executou-as uma a uma, com as mensagens JSON-RPC à vista. | MCP Inspector (manual, Windows) |
 
 ---
 

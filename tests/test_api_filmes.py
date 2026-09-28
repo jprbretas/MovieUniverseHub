@@ -1,7 +1,4 @@
-"""Testes dos endpoints de filmes, ponta a ponta: HTTP -> rota -> Catálogo -> TMDB falsa.
-
-O `api` vem do conftest.py: a app com a base de dados em memória e a TMDB falsa.
-"""
+"""Testes dos endpoints de filmes, ponta a ponta: HTTP -> rota -> Catálogo -> TMDB falsa."""
 import httpx2
 import pytest
 
@@ -45,5 +42,4 @@ def test_tmdb_em_baixo_da_503(api, tmdb_falsa):
 
 @pytest.mark.parametrize("url", ["/api/filmes?titulo=", "/api/filmes", "/api/filmes/0"])
 def test_pedidos_invalidos_dao_422(api, url):
-    # 422 = o FastAPI validou os parâmetros e recusou (≈ ModelState inválido -> 400 em ASP.NET)
     assert api.get(url).status_code == 422

@@ -1,11 +1,11 @@
-# Segredos: o .env NUNCA vai para o repositório (só o .env.example)
+# Segredos: só o .env.example vai para o repositório
 .env
 
-# Ambiente virtual Python (≈ pastas bin/ e obj/ do .NET: gera-se localmente)
+# Ambiente virtual
 .venv*/
 venv/
 
-# Cache do Python e das ferramentas
+# Caches e builds
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -13,14 +13,12 @@ __pycache__/
 build/
 dist/
 
-# Base de dados local (é criada pela aplicação)
+# Dados locais: a base de dados (criada pela aplicação) e as exportações
 dados/*.db
 dados/*.db-journal
-# Exportações (python -m movieuniverse exportar): são dados dos utilizadores, não código
 dados/exportacao*.json
 
-# Pastas dos editores (VS Code, Visual Studio, JetBrains). Do VS Code só se partilharia
-# o launch.json (configuração do F5), se existir.
+# Editores
 .idea/
 .vs/
 .vscode/*

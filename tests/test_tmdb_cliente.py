@@ -1,7 +1,4 @@
-"""Testes do ClienteTMDB contra uma TMDB falsa (sem internet, sem gastar pedidos).
-
-Os parâmetros `cliente` e `tmdb_falsa` vêm das @pytest.fixture do conftest.py.
-"""
+"""Testes do ClienteTMDB contra uma TMDB falsa (sem internet, sem gastar pedidos)."""
 import httpx2
 import pytest
 

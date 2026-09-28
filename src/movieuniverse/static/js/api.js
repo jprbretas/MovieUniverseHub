@@ -1,5 +1,4 @@
-// Chamadas à nossa API REST (≈ um serviço com HttpClient num projeto Blazor).
-// Todas devolvem uma Promise (≈ Task em C#): quem chama usa `await`.
+// Chamadas à API REST. Todas devolvem uma Promise.
 
 async function pedirJSON(url, { method = "GET", corpo } = {}) {
     const opcoes = { method };
@@ -15,15 +14,14 @@ async function pedirJSON(url, { method = "GET", corpo } = {}) {
         throw new Error("Não foi possível contactar o servidor. A aplicação está a correr?");
     }
 
-    if (resposta.status === 204) return null; // "No Content": sucesso sem corpo (ex.: DELETE)
+    if (resposta.status === 204) return null; // sucesso sem corpo (ex.: DELETE)
 
     const dados = await resposta.json().catch(() => null);
     if (!resposta.ok) {
-        // A nossa API devolve {"detail": "mensagem"} nos erros 404/500/503.
-        // No 422 (validação) o "detail" é uma lista técnica; mostramos uma frase simples.
+        // Nos erros 404/500/503 o "detail" é uma frase; no 422 é uma lista técnica.
         const mensagem = typeof dados?.detail === "string" ? dados.detail : "Pedido inválido.";
         const erro = new Error(mensagem);
-        erro.status = resposta.status; // para quem chama poder distinguir, por ex., um 404
+        erro.status = resposta.status; // para quem chama poder distinguir um 404
         throw erro;
     }
     return dados;

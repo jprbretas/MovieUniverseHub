@@ -1,7 +1,4 @@
-"""Testes dos endpoints de utilizadores, playlists e notas (base de dados em memória).
-
-O `api` vem do conftest.py. Os filmes 603 e 27205 existem na TMDB falsa.
-"""
+"""Testes dos endpoints de utilizadores, playlists e notas. Os filmes 603 e 27205 existem na TMDB falsa."""
 import pytest
 
 
