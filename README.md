@@ -18,6 +18,7 @@ dependência externa é a API da TMDB.
 [Testes](#testes) ·
 [Casos de teste](#casos-de-teste) ·
 [API REST](#api-rest) ·
+[Servidor MCP](#servidor-mcp-extra) ·
 [Como funciona por dentro](#como-funciona-por-dentro) ·
 [Estrutura](#estrutura-do-projeto) ·
 [Documentação](#outros-documentos) ·
@@ -61,6 +62,10 @@ existir, o utilizador é criado. É o que o enunciado permite e está explicado 
 [DECISIONS.md](DECISIONS.md#utilizadores-e-dados-pessoais).
 
 O jogo "mais alto ou mais baixo" era opcional e não foi implementado nesta entrega.
+
+**Extra: servidor MCP.** Além do site, a aplicação tem um servidor MCP que deixa uma IA, como o
+Claude Desktop, pesquisar filmes, ver a nota combinada e comparar playlists a partir de uma
+pergunta em linguagem natural. Ver [Servidor MCP](#servidor-mcp-extra).
 
 ---
 
@@ -211,7 +216,7 @@ O ficheiro tem dados dos utilizadores, por isso o `.gitignore` impede que vá pa
 pytest
 ```
 
-São **110 testes automáticos**. Correm em poucos segundos e **não usam a internet nem a base
+São **120 testes automáticos**. Correm em poucos segundos e **não usam a internet nem a base
 de dados real**:
 
 - as respostas da TMDB vêm de uma TMDB "falsa", com respostas reais gravadas em `tests/fixtures/tmdb/`;
@@ -282,6 +287,66 @@ interativa (Swagger) está em `/docs` e a especificação OpenAPI em `/openapi.j
 
 ---
 
+## Servidor MCP (extra)
+
+O **MCP** (*Model Context Protocol*) é uma forma padrão de dar "ferramentas" a uma IA. O
+MovieUniverse tem um servidor MCP que deixa um cliente como o **Claude Desktop** consultar o
+catálogo e as playlists. Em vez de abrir o site, pergunta-se em linguagem natural:
+
+- "Que playlists tem a ana no MovieUniverse?"
+- "Compara a Ficção científica com a Maratona sci-fi e explica qual tem o melhor rating."
+- "Qual é a nota combinada do Interstellar, e porquê?"
+- "Procura os filmes chamados Dune e diz-me a diferença entre eles."
+
+A IA escolhe as ferramentas, chama-as e responde com os dados reais da aplicação.
+
+### Ferramentas
+
+Todas **só consultam**: nenhuma cria, altera ou apaga utilizadores, playlists ou notas.
+
+| Ferramenta | O que devolve |
+|---|---|
+| `pesquisar_filmes` | filmes com um título, com o `tmdb_id`, o ano e a nota da TMDB |
+| `ficha_filme` | sinopse, géneros, duração, nota da TMDB, nota combinada (com a explicação) e notas dos utilizadores |
+| `listar_utilizadores` | os nomes dos utilizadores |
+| `listar_playlists` | as playlists (de todos ou de um utilizador), com o id de cada uma |
+| `ver_playlist` | os filmes de uma playlist, cada um com a nota combinada |
+| `comparar_playlists` | a playlist com o melhor rating e as outras comparações do ecrã Comparar |
+
+### Ligar ao Claude Desktop
+
+1. Instala as dependências do MCP (o `".[dev]"` do início rápido já as inclui):
+   ```powershell
+   pip install -e ".[mcp]"
+   ```
+2. No Claude Desktop, vai a **Settings → Developer → Edit Config**. Isso mostra o ficheiro
+   `claude_desktop_config.json` (no Windows fica em `%APPDATA%\Claude\`).
+3. Acrescenta o servidor, com o **caminho completo** do Python do `.venv` do projeto:
+   ```json
+   {
+     "mcpServers": {
+       "movieuniverse": {
+         "command": "C:\\caminho\\para\\MovieUniverseHub\\.venv\\Scripts\\python.exe",
+         "args": ["-m", "movieuniverse", "mcp"]
+       }
+     }
+   }
+   ```
+   No macOS/Linux, o `command` é `/caminho/para/MovieUniverseHub/.venv/bin/python`. Se o
+   ficheiro já tiver outros servidores, junta o `"movieuniverse"` dentro do mesmo `"mcpServers"`.
+4. **Fecha o Claude Desktop por completo** (também no ícone da barra de tarefas) e abre-o de
+   novo. As ferramentas do MovieUniverse passam a aparecer na lista de ferramentas da conversa.
+
+Não é preciso ter o site a correr: o servidor usa a mesma base de dados (`dados/movieuniverse.db`)
+e o mesmo `.env`. **O token da TMDB não vai para a configuração do Claude**: o servidor lê-o do
+`.env`, como o site. Sem token, as ferramentas da TMDB respondem com uma mensagem a explicar o
+problema, e as de playlists continuam a funcionar.
+
+O código está em `src/movieuniverse/servidor_mcp.py` e as decisões no
+[DECISIONS.md](DECISIONS.md#servidor-mcp-extra).
+
+---
+
 ## Como funciona por dentro
 
 ### Nota combinada
@@ -346,7 +411,7 @@ Os testes em `tests/test_seguranca.py` reproduzem estas tentativas.
 ```
 MovieUniverseHub/
 ├── src/movieuniverse/        código da aplicação
-│   ├── __main__.py           comandos: arrancar, importar-seed, exportar
+│   ├── __main__.py           comandos: arrancar, importar-seed, exportar, mcp
 │   ├── api.py                monta a app FastAPI: rotas, erros e frontend
 │   ├── rotas/                endpoints REST: filmes, utilizadores, playlists
 │   ├── servicos.py           regras de negócio (playlists, notas, comparação)
@@ -360,6 +425,7 @@ MovieUniverseHub/
 │   ├── dependencias.py       injeção de dependências (sessão, TMDB, catálogo)
 │   ├── importar.py           importação do seed
 │   ├── exportar.py           exportação para JSON
+│   ├── servidor_mcp.py       servidor MCP para IAs como o Claude Desktop (extra)
 │   ├── config.py             leitura do .env
 │   └── static/               frontend: index.html, css/, js/
 ├── tests/                    testes automáticos (pytest)
@@ -372,7 +438,8 @@ MovieUniverseHub/
 
 A aplicação está dividida em três camadas, como pede o enunciado:
 
-- **Apresentação:** `static/` (HTML, CSS e JavaScript) e `rotas/` (a API REST).
+- **Apresentação:** `static/` (HTML, CSS e JavaScript), `rotas/` (a API REST) e `servidor_mcp.py`
+  (o servidor MCP, que é outra "porta de entrada" para as mesmas regras).
 - **Negócio:** `servicos.py`, `nota_combinada.py`, `comparacao.py`, `catalogo.py` e `tmdb.py`.
 - **Dados:** `entidades.py` e `db.py`.
 
