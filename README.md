@@ -50,12 +50,15 @@ Cada passo está explicado em [Instalação passo a passo](#instalação-passo-a
 | Ecrã | O que se pode fazer |
 |---|---|
 | **Pesquisa** (caixa no topo) | Procurar filmes por título. Cada card mostra o cartaz, o ano e a nota da TMDB com o número de votos, por exemplo "8,4 · 40 258 votos". Um filme sem votos mostra "sem votos". |
-| **Ficha do filme** | Sinopse, géneros, duração e cartaz. Três caixas lado a lado: a **nota da TMDB**, a **nota combinada** (com o número de votos em que se baseia e uma explicação do cálculo) e a **média dos utilizadores da aplicação**. Quem entrou pode dar ou mudar a sua nota de 1 a 10. |
+| **Ficha do filme** | Sinopse, géneros, duração, cartaz e imagem de fundo. Três quadros: a **nota combinada** (num anel, com o número de votos em que se baseia e uma explicação do cálculo), a **nota da TMDB** e a **média dos utilizadores da aplicação** (com quem deu cada nota). Quem entrou pode dar ou mudar a sua nota numa escala de 1 a 10. |
 | **★ nos cards e na ficha** | Adicionar o filme a uma playlist ou tirá-lo de lá. |
-| **Início** | As playlists de quem entrou, em destaque, e o formulário para criar uma nova. |
-| **Playlist** | Os filmes da playlist, com o botão ✕ para tirar um filme, "Apagar playlist" e "Comparar com…". |
-| **Comparar** | Escolhem-se duas playlists e a aplicação indica a que tem o **melhor rating** (média das notas combinadas dos filmes). Mostra também o número de filmes, o melhor filme de cada uma, os filmes em comum e os que só estão numa delas. |
+| **Início** | Antes de entrar: uma apresentação, sugestões de pesquisa e as playlists da comunidade. Depois de entrar: as tuas playlists em destaque (cada uma com uma pilha dos seus cartazes), o cartão para criar uma nova e as playlists dos outros. |
+| **Playlist** | Os filmes da playlist, numerados pela ordem, com o botão ✕ para tirar um filme, "Apagar playlist" (pede confirmação) e "Comparar com…". |
+| **Comparar** | Escolhem-se duas playlists e a aplicação põe-nas frente a frente e indica a que tem o **melhor rating** (média das notas combinadas dos filmes). Mostra também o número de filmes, o melhor filme de cada uma, os filmes em comum e os que só estão numa delas. |
 | **Sobre** | O estado da API, se o token da TMDB está configurado e a atribuição à TMDB. |
+
+No telemóvel, o menu passa para uma barra no fundo do ecrã. Em qualquer ecrã, a tecla **/** leva
+o cursor para a pesquisa.
 
 **Entrar:** não há palavra-passe. Escreve-se um nome no canto superior direito e, se ainda não
 existir, o utilizador é criado. É o que o enunciado permite e está explicado no
@@ -427,7 +430,7 @@ MovieUniverseHub/
 │   ├── exportar.py           exportação para JSON
 │   ├── servidor_mcp.py       servidor MCP para IAs como o Claude Desktop (extra)
 │   ├── config.py             leitura do .env
-│   └── static/               frontend: index.html, css/, js/
+│   └── static/               frontend: index.html, css/, js/ e fontes/ (letra dos títulos)
 ├── tests/                    testes automáticos (pytest)
 │   └── fixtures/tmdb/        respostas reais da TMDB usadas nos testes
 ├── scripts/explorar_tmdb.py  script usado para explorar a API da TMDB no início

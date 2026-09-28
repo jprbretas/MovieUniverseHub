@@ -225,6 +225,30 @@ de volta reconhece-as e também não duplica nada.
 
 ---
 
+## Interface
+
+No fim, revi o aspeto do site sem mudar as cores (azul-noite, roxo e ciano). Em vez de inventar,
+segui padrões de sites de filmes que as pessoas já conhecem:
+
+- **O cartaz em primeiro lugar**, como no Letterboxd: o card é o cartaz, e cada playlist aparece
+  como uma pilha dos seus cartazes.
+- **Imagem de fundo na ficha**, que se desvanece para a cor da página, com o cartaz por cima.
+  Para isso a API passou a devolver `fundo_url` (o `backdrop_path` da TMDB). Quando o filme não
+  tem imagem de fundo, uso o cartaz desfocado.
+- **A nota combinada num anel**, como a pontuação da TMDB, porque é o número mais importante da
+  ficha. A explicação do cálculo fica logo por baixo.
+- **A nota do utilizador numa escala de 1 a 10** que se enche até ao número escolhido. Não usei
+  estrelas para a nota porque a ★ já quer dizer "guardar numa playlist", como o enunciado define.
+- **Avisos curtos** ("Adicionado a…", "Nota 8 guardada") em vez do `alert()`, e uma caixa de
+  confirmação antes de apagar uma playlist.
+- **No telemóvel**, o menu passa para uma barra no fundo do ecrã, como nas aplicações.
+- **A letra dos títulos (Sora) está no repositório**, em `static/fontes/`, com a licença OFL. Um
+  link para o Google Fonts seria mais uma dependência externa, e o enunciado só permite a TMDB.
+
+Continua a não haver frameworks nem build.
+
+---
+
 ## Servidor MCP (extra)
 
 Os gestores do projeto sugeriram um servidor MCP, para que uma IA (como o Claude Desktop)

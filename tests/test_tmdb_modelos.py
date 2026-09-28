@@ -5,6 +5,7 @@ import pytest
 from pydantic import ValidationError
 
 from movieuniverse.tmdb import (
+    URL_FUNDOS,
     URL_IMAGENS,
     FilmeDetalhe,
     FilmeResumo,
@@ -42,6 +43,7 @@ def test_detalhe_real_e_convertido(json_tmdb):
     assert len(filme.generos) > 0 and all(g.nome for g in filme.generos)
     assert filme.sinopse != ""
     assert filme.poster_url.startswith(URL_IMAGENS)
+    assert filme.fundo_url.startswith(URL_FUNDOS)
     # O número de votos muda com o tempo, por isso verificamos só o formato.
     assert re.fullmatch(r"\d,\d · [\d ]+ votos", filme.nota_tmdb_texto)
 
@@ -75,6 +77,7 @@ def test_valores_em_falta_da_tmdb_viram_desconhecidos():
     assert filme.duracao_min is None
     assert filme.sinopse == ""
     assert filme.poster_url is None
+    assert filme.fundo_url is None
     assert filme.nota_tmdb_texto == "sem votos"
 
 

@@ -30,8 +30,31 @@ export function mesmoNome(a, b) {
     return String(a).toLowerCase() === String(b).toLowerCase();
 }
 
-export function htmlPoster(filme, classe = "poster") {
+/**
+ * O cartaz do filme, ou um "cartaz" só com o título quando a TMDB não tem imagem.
+ * `decorativo`: sem texto alternativo, para quando o título já aparece ao lado (ex.: nos cards).
+ */
+export function htmlPoster(filme, classe = "poster", { decorativo = false } = {}) {
+    const alt = decorativo ? "" : `Cartaz de ${esc(filme.titulo)}`;
     return filme.poster_url
-        ? `<img class="${classe}" src="${esc(filme.poster_url)}" alt="Cartaz de ${esc(filme.titulo)}" loading="lazy">`
-        : `<div class="${classe} sem-cartaz">sem cartaz</div>`;
+        ? `<img class="${classe}" src="${esc(filme.poster_url)}" alt="${alt}" data-titulo="${esc(filme.titulo)}" loading="lazy">`
+        : htmlSemCartaz(filme.titulo, classe);
+}
+
+export function htmlSemCartaz(titulo, classe = "poster", aviso = "sem cartaz") {
+    return `<div class="${classe} sem-cartaz"><span class="sem-cartaz-aviso">${esc(aviso)}</span><span>${esc(titulo)}</span></div>`;
+}
+
+/** Círculo com a inicial do nome; a cor depende do nome, por isso é sempre a mesma para cada pessoa. */
+export function htmlAvatar(nome, classe = "") {
+    const cores = ["var(--roxo)", "var(--ciano)", "var(--ok)", "var(--ambar)"];
+    const texto = String(nome).trim().toLowerCase();
+    const soma = [...texto].reduce((total, letra) => total + letra.codePointAt(0), 0);
+    const inicial = [...texto][0] ?? "?";
+    return `<span class="avatar ${classe}" style="--cor: ${cores[soma % cores.length]}" aria-hidden="true">${esc(inicial)}</span>`;
+}
+
+/** "3 filmes" / "1 filme" */
+export function contar(numero, singular, plural = `${singular}s`) {
+    return `${numero} ${numero === 1 ? singular : plural}`;
 }

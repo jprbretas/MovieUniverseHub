@@ -18,6 +18,9 @@ dados/*.db
 dados/*.db-journal
 dados/exportacao*.json
 
+# Ficheiros que a app do Claude guarda na pasta do projeto
+Claude outputs/
+
 # Editores
 .idea/
 .vs/

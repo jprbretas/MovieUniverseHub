@@ -67,3 +67,14 @@ Modelo para cada entrada:
 - **O que fiz em vez disso:** retirei a instrução do README e corrigi o comentário. O único
   arranque documentado é `python -m movieuniverse`, e segui o README do início ao fim numa
   pasta limpa para confirmar que as instruções funcionam.
+
+## 6. O menu do telemóvel ficava preso ao topo
+- **Contexto:** revisão do design, com screenshots automáticos em vários tamanhos de ecrã.
+- **Sugestão da IA:** no telemóvel, o menu passava a ser uma barra fixa no fundo do ecrã
+  (`position: fixed; bottom: 0`), mas continuava dentro do topo, que tem um efeito de vidro
+  fosco (`backdrop-filter`).
+- **Problema:** um elemento com `backdrop-filter` passa a ser a referência dos filhos com
+  `position: fixed`. A barra aparecia colada ao topo, por cima da pesquisa, e não no fundo.
+- **O que fiz em vez disso:** no telemóvel, o topo fica sem `backdrop-filter` (com um fundo quase
+  opaco). Confirmei nos screenshots a 390 px de largura que a barra fica no fundo e que não há
+  scroll horizontal.
