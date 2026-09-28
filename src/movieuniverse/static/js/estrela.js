@@ -2,16 +2,25 @@
 // tirá-lo ou criar uma playlist nova. Cheia (★) se o filme estiver em pelo menos uma.
 
 import { api } from "./api.js";
+import { avisar } from "./avisos.js";
 import { atualizarPlaylist, playlistsCom, sessao } from "./sessao.js";
 import { esc } from "./util.js";
 
 const menu = document.getElementById("menu-estrela");
 let filmeDoMenu = null; // tmdb_id do filme cujo menu está aberto
 
-export function htmlEstrela(tmdbId) {
+/** `comTexto`: a versão com legenda, usada na ficha do filme. */
+export function htmlEstrela(tmdbId, { comTexto = false } = {}) {
     const ativa = playlistsCom(tmdbId).length > 0;
-    return `<button type="button" class="estrela ${ativa ? "ativa" : ""}" data-tmdb="${tmdbId}"
-                title="Guardar nas playlists" aria-label="Guardar nas playlists">${ativa ? "★" : "☆"}</button>`;
+    return `<button type="button" class="estrela ${comTexto ? "com-texto" : ""} ${ativa ? "ativa" : ""}"
+                data-tmdb="${tmdbId}" title="Guardar nas playlists" aria-label="Guardar nas playlists">
+                <span class="estrela-icone" aria-hidden="true">${ativa ? "★" : "☆"}</span>
+                <span class="estrela-texto">${textoDaEstrela(ativa)}</span>
+            </button>`;
+}
+
+function textoDaEstrela(ativa) {
+    return ativa ? "Nas tuas playlists" : "Guardar numa playlist";
 }
 
 /** Atualiza todas as estrelas deste filme que estão no ecrã. */
@@ -19,7 +28,8 @@ function atualizarEstrelas(tmdbId) {
     const ativa = playlistsCom(tmdbId).length > 0;
     document.querySelectorAll(`.estrela[data-tmdb="${tmdbId}"]`).forEach((botao) => {
         botao.classList.toggle("ativa", ativa);
-        botao.textContent = ativa ? "★" : "☆";
+        botao.querySelector(".estrela-icone").textContent = ativa ? "★" : "☆";
+        botao.querySelector(".estrela-texto").textContent = textoDaEstrela(ativa);
     });
 }
 
@@ -29,7 +39,7 @@ export function abrirMenu(botao) {
 
     // Posiciona o menu por baixo da estrela, sem sair do ecrã.
     const r = botao.getBoundingClientRect();
-    const largura = 260;
+    const largura = 270;
     const esquerda = Math.min(r.right - largura, document.documentElement.clientWidth - largura - 8);
     menu.style.top = `${r.bottom + window.scrollY + 6}px`;
     menu.style.left = `${Math.max(8, esquerda) + window.scrollX}px`;
@@ -78,6 +88,7 @@ menu.addEventListener("change", async (evento) => {
             : await api.removerFilme(playlistId, tmdbId);
         atualizarPlaylist(resumo);
         atualizarEstrelas(tmdbId);
+        avisar(caixa.checked ? `Adicionado a "${resumo.nome}"` : `Tirado de "${resumo.nome}"`);
     } catch (erro) {
         caixa.checked = !caixa.checked; // desfaz a marcação que falhou
         mostrarErro(erro.message);
@@ -97,6 +108,7 @@ menu.addEventListener("submit", async (evento) => {
         atualizarPlaylist(await api.adicionarFilme(nova.id, tmdbId));
         atualizarEstrelas(tmdbId);
         desenharMenu();
+        avisar(`Playlist "${nova.nome}" criada, já com o filme`);
     } catch (erro) {
         mostrarErro(erro.message);
     }
